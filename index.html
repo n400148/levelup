@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="LevelUp"/>
+<meta name="theme-color" content="#000000"/>
+<title>LevelUp</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.0/Recharts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#e8f0ff;font-family:'Rajdhani',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.app{max-width:430px;min-height:100vh;margin:0 auto;background:#000;display:flex;flex-direction:column;position:relative}
+.app::before{content:'';position:fixed;inset:0;max-width:430px;margin:0 auto;background-image:linear-gradient(rgba(30,107,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(30,107,255,0.05) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+.header{padding:44px 18px 12px;position:sticky;top:0;z-index:10;background:rgba(0,0,0,0.93);backdrop-filter:blur(12px);border-bottom:1px solid #1a2a44}
+.header-inner{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,#1e6bff,#00c2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:9px;letter-spacing:3px;color:#2a3d58;text-transform:uppercase;margin-top:1px;font-weight:600}
+.header-right{display:flex;align-items:center;gap:10px}
+.live-dot{display:flex;align-items:center;gap:5px;font-size:9px;color:#00e5a0;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:#00e5a0;box-shadow:0 0 8px #00e5a0;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.signout-btn{background:rgba(255,61,107,0.1);border:1px solid rgba(255,61,107,0.2);color:#ff3d6b;border-radius:6px;padding:5px 10px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.content{flex:1;overflow-y:auto;padding:14px 14px 92px;position:relative;z-index:1}
+.tabs{display:flex;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(0,0,0,0.95);border-top:1px solid #1a2a44;z-index:20;backdrop-filter:blur(12px)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 12px;cursor:pointer;background:none;border:none;color:#2a3d58;gap:3px;transition:color 0.2s;font-family:'Rajdhani',sans-serif;font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.tab.active{color:#3d8bff}
+.tab-icon{font-size:17px;line-height:1}
+.card{background:#080c14;border:1px solid #1a2a44;border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#1e6bff,transparent);opacity:0.4}
+.card-title{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:#00c2ff;margin-bottom:14px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.section-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#4a6080;margin-bottom:5px;margin-top:12px;font-weight:700;display:block}
+.input{width:100%;background:#0d1424;border:1px solid #1a2a44;border-radius:8px;padding:10px 12px;color:#e8f0ff;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+.input:focus{border-color:#1e6bff;box-shadow:0 0 0 3px rgba(30,107,255,0.18)}
+select.input option{background:#0d1424}
+textarea.input{resize:none;min-height:70px;line-height:1.5}
+.btn{padding:11px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,#1e6bff,#0050dd);color:#fff;width:100%;box-shadow:0 0 20px rgba(30,107,255,0.28)}
+.btn-secondary{background:#0d1424;color:#e8f0ff;border:1px solid #1a2a44}
+.btn-teal{background:rgba(0,194,255,0.1);color:#00c2ff;border:1px solid rgba(0,194,255,0.3)}
+.btn-danger{background:rgba(255,61,107,0.1);color:#ff3d6b;border:1px solid rgba(255,61,107,0.2)}
+.btn-small{padding:6px 12px;font-size:11px;border-radius:6px}
+.row{display:flex;gap:8px}
+.flex-1{flex:1}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-box{background:#0d1424;border:1px solid #111d33;border-radius:10px;padding:12px 8px;text-align:center;position:relative;overflow:hidden}
+.stat-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#1e6bff,transparent);opacity:0.5}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#3d8bff;line-height:1}
+.stat-lbl{font-size:9px;color:#4a6080;text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-weight:700}
+.log-item{background:#0d1424;border:1px solid #111d33;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.log-date{font-size:10px;color:#4a6080;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.log-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:#e8f0ff}
+.log-unit{font-family:'Rajdhani',sans-serif;font-size:12px;color:#4a6080;margin-left:3px}
+.ai-card{background:linear-gradient(135deg,rgba(30,107,255,0.08),rgba(0,194,255,0.05));border:1px solid rgba(30,107,255,0.3);border-radius:10px;padding:14px;margin-top:10px}
+.ai-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#00c2ff;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-weight:700}
+.ai-label::before{content:'◈'}
+.ai-text{font-size:13px;color:#8090a8;line-height:1.7;white-space:pre-line;font-weight:500}
+@keyframes ldots{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+.chip{display:inline-flex;background:#111d33;border:1px solid #1a2a44;border-radius:5px;padding:4px 10px;font-size:12px;margin:3px;cursor:pointer;transition:all 0.15s;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.5px}
+.chip.sel{background:rgba(30,107,255,0.15);border-color:#1e6bff;color:#3d8bff}
+.empty{text-align:center;padding:40px 20px;color:#2a3d58}
+.empty-icon{font-size:34px;margin-bottom:12px;opacity:0.4}
+.empty-txt{font-size:13px;line-height:1.6}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#3d8bff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;padding:0;margin-bottom:14px}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.split-card{background:#0d1424;border:1px solid #1a2a44;border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.2s}
+.split-card:hover{border-color:#1e6bff;box-shadow:0 0 16px rgba(30,107,255,0.2);background:rgba(30,107,255,0.06)}
+.split-icon{font-size:26px;margin-bottom:5px}
+.split-name{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1.5px;color:#00c2ff;text-transform:uppercase}
+.split-count{font-size:11px;color:#2a3d58;margin-top:2px}
+.day-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.day-tab{flex-shrink:0;padding:7px 14px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid #1a2a44;background:#0d1424;color:#4a6080;font-family:'Rajdhani',sans-serif;transition:all 0.15s}
+.day-tab.active{background:rgba(30,107,255,0.15);border-color:#1e6bff;color:#3d8bff}
+.exercise-row{background:#0d1424;border:1px solid #111d33;border-radius:8px;margin-bottom:6px;overflow:hidden}
+.exercise-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px;cursor:pointer;transition:background 0.15s}
+.exercise-hdr:hover{background:rgba(30,107,255,0.05)}
+.exercise-hdr.open{border-bottom:1px solid #1a2a44}
+.ex-name{font-weight:700;font-size:14px}
+.ex-meta{font-size:11px;color:#4a6080;margin-top:2px}
+.exercise-body{padding:12px}
+.set-grid{display:grid;grid-template-columns:24px 1fr 1fr 1fr auto;gap:5px;align-items:center;margin-bottom:6px}
+.set-num{font-family:'Orbitron',sans-serif;font-size:10px;color:#4a6080;text-align:center}
+.set-inp{background:#111d33;border:1px solid #1a2a44;border-radius:5px;padding:7px 4px;color:#e8f0ff;font-size:13px;text-align:center;width:100%;outline:none;font-family:'Rajdhani',sans-serif;font-weight:600}
+.set-inp:focus{border-color:#1e6bff}
+.prev-box{background:rgba(0,194,255,0.04);border:1px solid rgba(0,194,255,0.12);border-radius:6px;padding:8px 10px;margin-bottom:8px}
+.prev-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#00c2ff;margin-bottom:4px;font-weight:700}
+.prev-row{font-size:12px;color:#3a5060;margin-bottom:2px}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.tag-blue{background:rgba(30,107,255,0.12);color:#3d8bff}
+.tag-teal{background:rgba(0,194,255,0.12);color:#00c2ff}
+.tag-red{background:rgba(255,61,107,0.12);color:#ff3d6b}
+.tag-green{background:rgba(0,229,160,0.12);color:#00e5a0}
+/* AUTH */
+.auth-wrap{min-height:100vh;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.auth-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(30,107,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(30,107,255,0.05) 1px,transparent 1px);background-size:32px 32px}
+.auth-box{background:#080c14;border:1px solid #1a2a44;border-radius:16px;padding:36px 28px;width:100%;max-width:380px;margin:20px;position:relative;z-index:1}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#1e6bff,#00c2ff,transparent);border-radius:16px 16px 0 0}
+.auth-logo{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;background:linear-gradient(135deg,#1e6bff,#00c2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:4px}
+.auth-sub{text-align:center;font-size:11px;letter-spacing:3px;color:#2a3d58;text-transform:uppercase;margin-bottom:32px;font-weight:600}
+.auth-toggle{display:flex;background:#0d1424;border:1px solid #1a2a44;border-radius:8px;margin-bottom:24px;overflow:hidden}
+.auth-toggle-btn{flex:1;padding:10px;background:none;border:none;color:#4a6080;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.auth-toggle-btn.active{background:rgba(30,107,255,0.15);color:#3d8bff}
+.auth-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#4a6080;margin-bottom:6px;font-weight:600;display:block}
+.auth-input{width:100%;background:#0d1424;border:1px solid #1a2a44;border-radius:8px;padding:12px 14px;color:#e8f0ff;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;margin-bottom:16px;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box}
+.auth-input:focus{border-color:#1e6bff;box-shadow:0 0 0 3px rgba(30,107,255,0.2)}
+.auth-btn{width:100%;padding:13px;background:linear-gradient(135deg,#1e6bff,#0050dd);border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(30,107,255,0.3);transition:all 0.2s;margin-top:4px}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+.auth-error{background:rgba(255,61,107,0.1);border:1px solid rgba(255,61,107,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#ff3d6b;margin-bottom:16px;line-height:1.4}
+.auth-success{background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#00e5a0;margin-bottom:16px;line-height:1.4}
+.auth-forgot{text-align:center;margin-top:14px;font-size:12px;color:#2a3d58;cursor:pointer}
+.change-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.5px}
+.cpup{background:rgba(255,61,107,0.15);color:#ff3d6b}
+.cpdown{background:rgba(0,229,160,0.15);color:#00e5a0}
+.cpflat{background:rgba(74,96,128,0.2);color:#4a6080}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+
+// ── CONFIG ── Replace these with your actual Supabase values ──────────────────
+const SUPABASE_URL = 'https://uorwaxkedqvogfeghjnu.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_UOYqW1KMvsyaY8aDUMDSPg_98zk-SAx'
+// ─────────────────────────────────────────────────────────────────────────────
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+const today = () => new Date().toISOString().split('T')[0]
+const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})
+const daysBetween = (a,b) => Math.round((new Date(b)-new Date(a))/86400000)
+
+const Tip = ({active,payload}) => {
+  if(!active||!payload?.length) return null
+  return React.createElement('div',{style:{background:'#0d1424',border:'1px solid #1a2a44',borderRadius:8,padding:'8px 12px'}},
+    React.createElement('div',{style:{fontSize:10,color:'#4a6080',marginBottom:2}},payload[0]?.payload?.date),
+    payload.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:p.color||'#3d8bff',fontWeight:700}},p.value+' '+p.name))
+  )
+}
+
+function useAI(){
+  const [loading,setLoading]=useState(false)
+  const [result,setResult]=useState(null)
+  const ask=async prompt=>{
+    setLoading(true);setResult(null)
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})})
+      const d=await res.json()
+      setResult(d.content?.map(b=>b.text||'').join('')||'No response.')
+    }catch{setResult('Could not reach AI.')}
+    setLoading(false)
+  }
+  return{ask,loading,result,setResult}
+}
+
+const SPLITS=['Push','Pull','Legs','Core','Cardio','Full Body','Upper','Lower']
+const EXERCISES={
+  Push:['Bench Press','Incline Bench','Decline Bench','Overhead Press','DB Shoulder Press','Lateral Raises','Cable Flyes','Tricep Pushdown','Skull Crushers','Dips','Push-Ups'],
+  Pull:['Barbell Row','Pull-Ups','Lat Pulldown','Seated Cable Row','Face Pulls','Barbell Curl','Hammer Curls','Incline DB Curl','Shrugs','Deadlift','Cable Row'],
+  Legs:['Squat','Romanian Deadlift','Leg Press','Bulgarian Split Squat','Leg Curl','Leg Extension','Hip Thrust','Calf Raises','Walking Lunges','Hack Squat'],
+  Core:['Plank','Cable Crunch','Hanging Leg Raise','Ab Wheel','Russian Twists'],
+  Cardio:['Treadmill','Stairmaster','Cycling','HIIT','Jump Rope','Rowing Machine'],
+  'Full Body':['Deadlift','Clean','Thruster','Burpee','KB Swing','Box Jump'],
+  Upper:['Bench Press','Overhead Press','Pull-Ups','Barbell Row','Lateral Raises','Barbell Curl'],
+  Lower:['Squat','Romanian Deadlift','Leg Press','Hip Thrust','Leg Curl','Calf Raises'],
+}
+const PEPTIDES_LIST=['Retatrutide','Tesamorelin','BPC-157','TB-500','Ipamorelin','CJC-1295','HGH Frag 176-191','Sermorelin','Semaglutide','AOD-9604','Selank','PT-141','Tirzepatide']
+const splitIcon=s=>({Push:'💪',Pull:'🔙',Legs:'🦵',Core:'🎯',Cardio:'🏃','Full Body':'⚡',Upper:'🔝',Lower:'⬇️'}[s]||'🏋')
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function AuthScreen(){
+  const [mode,setMode]=useState('login')
+  const [email,setEmail]=useState('')
+  const [password,setPassword]=useState('')
+  const [confirm,setConfirm]=useState('')
+  const [loading,setLoading]=useState(false)
+  const [error,setError]=useState('')
+  const [success,setSuccess]=useState('')
+  const reset=()=>{setError('');setSuccess('')}
+
+  const login=async()=>{
+    reset();setLoading(true)
+    const{error}=await sb.auth.signInWithPassword({email,password})
+    if(error)setError(error.message)
+    setLoading(false)
+  }
+  const signup=async()=>{
+    reset()
+    if(password!==confirm){setError('Passwords do not match.');return}
+    if(password.length<6){setError('Password must be at least 6 characters.');return}
+    setLoading(true)
+    const{error}=await sb.auth.signUp({email,password})
+    if(error)setError(error.message)
+    else setSuccess('Account created! Check your email to confirm, then log in.')
+    setLoading(false)
+  }
+  const resetPw=async()=>{
+    reset();setLoading(true)
+    const{error}=await sb.auth.resetPasswordForEmail(email)
+    if(error)setError(error.message)
+    else setSuccess('Reset email sent! Check your inbox.')
+    setLoading(false)
+  }
+
+  return(
+    <div className="auth-wrap">
+      <div className="auth-grid"/>
+      <div className="auth-box">
+        <div className="auth-logo">LEVELUP</div>
+        <div className="auth-sub">Performance Tracker</div>
+        {mode!=='reset'&&<div className="auth-toggle">
+          <button className={`auth-toggle-btn${mode==='login'?' active':''}`} onClick={()=>{setMode('login');reset()}}>Login</button>
+          <button className={`auth-toggle-btn${mode==='signup'?' active':''}`} onClick={()=>{setMode('signup');reset()}}>Sign Up</button>
+        </div>}
+        {error&&<div className="auth-error">{error}</div>}
+        {success&&<div className="auth-success">{success}</div>}
+        {mode==='reset'?(
+          <>
+            <label className="auth-label">Email</label>
+            <input className="auth-input" type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)}/>
+            <button className="auth-btn" onClick={resetPw} disabled={loading}>{loading?'Sending...':'Send Reset Email'}</button>
+            <div className="auth-forgot" onClick={()=>{setMode('login');reset()}}>← Back to Login</div>
+          </>
+        ):(
+          <>
+            <label className="auth-label">Email</label>
+            <input className="auth-input" type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)}/>
+            <label className="auth-label">Password</label>
+            <input className="auth-input" type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)}/>
+            {mode==='signup'&&<><label className="auth-label">Confirm Password</label><input className="auth-input" type="password" placeholder="••••••••" value={confirm} onChange={e=>setConfirm(e.target.value)}/></>}
+            <button className="auth-btn" onClick={mode==='login'?login:signup} disabled={loading}>{loading?'Please wait...':(mode==='login'?'Log In':'Create Account')}</button>
+            {mode==='login'&&<div className="auth-forgot" onClick={()=>{setMode('reset');reset()}}>Forgot password?</div>}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── WEIGHT TAB ────────────────────────────────────────────────────────────────
+function WeightTab({weights,setWeights,deleteWeight,notes}){
+  const [date,setDate]=useState(today())
+  const [weight,setWeight]=useState('')
+  const ai=useAI()
+  const add=async()=>{
+    if(!weight||isNaN(weight))return
+    const entry={date,weight:parseFloat(weight),id:`${date}-${Date.now()}`}
+    const updated=[...weights.filter(w=>w.date!==date),entry].sort((a,b)=>a.date.localeCompare(b.date))
+    await setWeights(updated);setWeight('')
+  }
+  const latest=weights[weights.length-1]
+  const prev=weights[weights.length-2]
+  const diff=latest&&prev?+(latest.weight-prev.weight).toFixed(1):null
+  const totalChange=weights.length>1?+(weights[weights.length-1].weight-weights[0].weight).toFixed(1):null
+  const chartData=weights.slice(-60).map(w=>({date:fmt(w.date),weight:w.weight}))
+  const analyze=()=>{
+    if(weights.length<3){ai.setResult('Log at least 3 weigh-ins for trend analysis.');return}
+    const recent=weights.slice(-14)
+    const trend=+(recent[recent.length-1].weight-recent[0].weight).toFixed(1)
+    const noteCtx=notes.slice(-5).map(n=>`${n.date}: "${n.text}"`).join('; ')
+    ai.ask(`Body recomposition coach. Weight data: ${recent.map(w=>`${w.date}:${w.weight}lbs`).join(',')}. 14-day change: ${trend}lbs. Notes: ${noteCtx||'none'}. In 3-4 sentences: assess trend, flag if rate is off, recommend one adjustment. Account for creatine/peptide water weight. Direct with numbers.`)
+  }
+  return(
+    <>
+      <div className="card">
+        <div className="card-title">⚖ LOG WEIGHT</div>
+        <div className="row">
+          <div className="flex-1"><label className="section-label">Date</label><input type="date" className="input" value={date} onChange={e=>setDate(e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Weight (lbs)</label><input type="number" className="input" placeholder="185.0" step="0.1" value={weight} onChange={e=>setWeight(e.target.value)}/></div>
+        </div>
+        <div style={{marginTop:12}}><button className="btn btn-primary" onClick={add}>LOG ENTRY</button></div>
+      </div>
+      {weights.length>0&&<>
+        <div className="stat-grid">
+          <div className="stat-box"><div className="stat-val">{latest?.weight}</div><div className="stat-lbl">Current</div></div>
+          <div className="stat-box"><div className="stat-val" style={{color:diff>0?'#ff3d6b':diff<0?'#00e5a0':'#4a6080'}}>{diff!==null?(diff>0?`+${diff}`:diff):'—'}</div><div className="stat-lbl">Last Δ</div></div>
+          <div className="stat-box"><div className="stat-val" style={{color:totalChange<0?'#00e5a0':totalChange>0?'#ff3d6b':'#4a6080'}}>{totalChange!==null?(totalChange>0?`+${totalChange}`:totalChange):'—'}</div><div className="stat-lbl">Total Δ</div></div>
+        </div>
+        <div className="card">
+          <div className="card-title">📈 WEIGHT CHART</div>
+          <ResponsiveContainer width="100%" height={190}>
+            <AreaChart data={chartData} margin={{top:8,right:4,bottom:0,left:-18}}>
+              <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#1e6bff" stopOpacity={0.35}/><stop offset="100%" stopColor="#1e6bff" stopOpacity={0}/></linearGradient></defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#0f1e35"/>
+              <XAxis dataKey="date" tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false}/>
+              <YAxis tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false} domain={['auto','auto']}/>
+              <Tooltip content={<Tip/>}/>
+              <Area type="monotone" dataKey="weight" stroke="#3d8bff" strokeWidth={2} fill="url(#wg)" dot={false} name="lbs" activeDot={{r:4,fill:'#3d8bff'}}/>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="card">
+          <div className="card-title">◈ AI TREND ANALYSIS</div>
+          <button className="btn btn-teal btn-small" onClick={analyze} style={{marginBottom:10}}>Analyze Trend</button>
+          {ai.loading&&<div className="ai-card"><div className="ai-label">Analyzing<span id="ld">...</span></div></div>}
+          {ai.result&&<div className="ai-card"><div className="ai-label">AI Coach</div><div className="ai-text">{ai.result}</div></div>}
+        </div>
+        <div className="card">
+          <div className="card-title">📋 HISTORY</div>
+          {[...weights].reverse().slice(0,20).map((w,i,arr)=>{
+            const nxt=arr[i+1];const d=nxt?+(w.weight-nxt.weight).toFixed(1):null
+            return(<div key={w.date} className="log-item">
+              <div><div className="log-date">{fmt(w.date)}</div><div><span className="log-val">{w.weight}</span><span className="log-unit">lbs</span></div></div>
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                {d!==null&&<span className={`change-pill ${d>0?'cpup':d<0?'cpdown':'cpflat'}`}>{d>0?`+${d}`:d}</span>}
+                <button className="btn btn-danger btn-small" onClick={()=>deleteWeight(w.date)}>✕</button>
+              </div>
+            </div>)
+          })}
+        </div>
+      </>}
+      {weights.length===0&&<div className="empty"><div className="empty-icon">⚖</div><div className="empty-txt">No weight logged yet.</div></div>}
+    </>
+  )
+}
+
+// ── WORKOUT TAB ───────────────────────────────────────────────────────────────
+function WorkoutTab({logs,setLogs,deleteLog,plans,setPlans}){
+  const [screen,setScreen]=useState('select')
+  const [sel,setSel]=useState(null)
+  const [selDay,setSelDay]=useState('Day A')
+  const [exercises,setExercises]=useState([])
+  const [openIdx,setOpenIdx]=useState(null)
+  const [logDate,setLogDate]=useState(today())
+  const [customEx,setCustomEx]=useState('')
+  const [newDay,setNewDay]=useState('')
+  const ai=useAI()
+
+  const getPlanExs=()=>plans[sel]?.[selDay]||[]
+  const togglePlanEx=ex=>{
+    const cur=getPlanExs()
+    const upd=cur.includes(ex)?cur.filter(e=>e!==ex):[...cur,ex]
+    setPlans({...plans,[sel]:{...(plans[sel]||{}),[selDay]:upd}})
+  }
+  const openSplit=s=>{
+    if(!plans[s])setPlans({...plans,[s]:{'Day A':[]}})
+    setSel(s);setSelDay('Day A');setScreen('plan')
+  }
+  const addDayVariant=()=>{
+    if(!newDay.trim())return
+    setPlans({...plans,[sel]:{...(plans[sel]||{}),[newDay.trim()]:[]}}); setSelDay(newDay.trim());setNewDay('')
+  }
+  const startLog=()=>{
+    setExercises(getPlanExs().map(name=>({name,sets:[{reps:'',weight:'',rpe:''}]})))
+    setOpenIdx(null);setScreen('log')
+  }
+  const addSet=ei=>{const u=[...exercises];u[ei].sets.push({reps:'',weight:'',rpe:''});setExercises(u)}
+  const updSet=(ei,si,f,v)=>{const u=[...exercises];u[ei].sets[si][f]=v;setExercises(u)}
+  const getPrev=name=>logs.filter(l=>l.split===sel).flatMap(l=>(l.exercises||[]).filter(e=>e.name===name)).slice(-3)
+  const getAI=ex=>{
+    const h=getPrev(ex.name)
+    if(!h.length){ai.ask(`2-sentence progressive overload recommendation for ${ex.name} for hypertrophy. Include rep range and starting weight.`);return}
+    const hist=h.map(h=>h.sets.map(s=>`${s.weight||'?'}lbs×${s.reps||'?'}`).join(',')).join(' → ')
+    ai.ask(`Strength coach for "${ex.name}". History: ${hist}. 3 sentences: increase weight this session? How much? Optimal sets/reps? Note strength decreases. Specific.`)
+  }
+  const saveLog=async()=>{
+    if(!exercises.length)return
+    await setLogs([...logs,{date:logDate,split:sel,day:selDay,exercises,id:Date.now()}])
+    setExercises([]);setScreen('select')
+  }
+
+  if(screen==='select')return(
+    <>
+      <div className="card">
+        <div className="card-title">🏋 SELECT SPLIT</div>
+        <div className="split-grid">
+          {SPLITS.map(s=>(
+            <div key={s} className="split-card" onClick={()=>openSplit(s)}>
+              <div className="split-icon">{splitIcon(s)}</div>
+              <div className="split-name">{s}</div>
+              <div className="split-count">{Object.keys(plans[s]||{}).length} variant(s) · {logs.filter(l=>l.split===s).length} sessions</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {logs.length>0&&<div className="card">
+        <div className="card-title">📅 RECENT SESSIONS</div>
+        {[...logs].reverse().slice(0,6).map(log=>(
+          <div key={log.id} className="log-item" style={{flexDirection:'column',alignItems:'flex-start'}}>
+            <div style={{display:'flex',width:'100%',justifyContent:'space-between',alignItems:'center'}}>
+              <div><div className="log-date">{fmt(log.date)}</div><div style={{fontWeight:700,fontSize:15}}>{log.split} — {log.day}</div><div style={{fontSize:12,color:'#4a6080',marginTop:2}}>{(log.exercises||[]).length} exercises</div></div>
+              <button className="btn btn-danger btn-small" onClick={()=>deleteLog(log.id)}>✕</button>
+            </div>
+          </div>
+        ))}
+      </div>}
+    </>
+  )
+
+  if(screen==='plan')return(
+    <>
+      <button className="back-btn" onClick={()=>setScreen('select')}>← Back</button>
+      <div className="card">
+        <div className="card-title">📋 {sel?.toUpperCase()} — PLAN</div>
+        <div className="day-tabs">
+          {Object.keys(plans[sel]||{}).map(d=><div key={d} className={`day-tab${selDay===d?' active':''}`} onClick={()=>setSelDay(d)}>{d}</div>)}
+        </div>
+        <div className="row" style={{marginBottom:12}}>
+          <input className="input flex-1" placeholder="New variant (e.g. Day B)" value={newDay} onChange={e=>setNewDay(e.target.value)} style={{fontSize:13}}/>
+          <button className="btn btn-secondary btn-small" onClick={addDayVariant}>+ Add</button>
+        </div>
+        <label className="section-label">Exercises for {selDay}</label>
+        <div style={{display:'flex',flexWrap:'wrap',marginBottom:10}}>
+          {(EXERCISES[sel]||EXERCISES.Push).map(ex=><span key={ex} className={`chip${getPlanExs().includes(ex)?' sel':''}`} onClick={()=>togglePlanEx(ex)}>{ex}</span>)}
+        </div>
+        {getPlanExs().length>0&&<div style={{marginBottom:10}}>
+          <label className="section-label">Selected ({getPlanExs().length})</label>
+          {getPlanExs().map(ex=>(
+            <div key={ex} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid #0f1e35'}}>
+              <span style={{fontSize:13,fontWeight:600}}>{ex}</span>
+              <button className="btn btn-danger btn-small" onClick={()=>togglePlanEx(ex)}>✕</button>
+            </div>
+          ))}
+        </div>}
+        <button className="btn btn-primary" onClick={startLog} disabled={!getPlanExs().length} style={{marginTop:12}}>START {selDay} →</button>
+      </div>
+    </>
+  )
+
+  return(
+    <>
+      <button className="back-btn" onClick={()=>setScreen('plan')}>← Back to Plan</button>
+      <div className="card">
+        <div className="card-title">⚡ {sel?.toUpperCase()} — {selDay}</div>
+        <label className="section-label">Session Date</label>
+        <input type="date" className="input" value={logDate} onChange={e=>setLogDate(e.target.value)}/>
+        <div className="row" style={{marginTop:10}}>
+          <input className="input flex-1" placeholder="Add extra exercise..." value={customEx} onChange={e=>setCustomEx(e.target.value)} style={{fontSize:13}}/>
+          <button className="btn btn-secondary btn-small" onClick={()=>{if(customEx){setExercises([...exercises,{name:customEx,sets:[{reps:'',weight:'',rpe:''}]}]);setCustomEx('');setOpenIdx(exercises.length)}}}>+ Add</button>
+        </div>
+      </div>
+      {exercises.map((ex,ei)=>{
+        const prev=getPrev(ex.name)
+        return(<div key={ex.name+ei} className="exercise-row">
+          <div className={`exercise-hdr${openIdx===ei?' open':''}`} onClick={()=>setOpenIdx(openIdx===ei?null:ei)}>
+            <div><div className="ex-name">{ex.name}</div><div className="ex-meta">{ex.sets.length} sets · {prev.length>0?`${prev.length} prev sessions`:'No history'}</div></div>
+            <span style={{color:'#2a3d58',fontSize:14}}>{openIdx===ei?'▲':'▼'}</span>
+          </div>
+          {openIdx===ei&&<div className="exercise-body">
+            {prev.length>0&&<div className="prev-box">
+              <div className="prev-lbl">Previous Sessions</div>
+              {prev.slice(-2).reverse().map((p,pi)=><div key={pi} className="prev-row">Session -{pi+1}: {p.sets.map((s,si)=>`S${si+1} ${s.weight||'?'}×${s.reps||'?'}`).join(' | ')}</div>)}
+            </div>}
+            <div style={{display:'grid',gridTemplateColumns:'24px 1fr 1fr 1fr auto',gap:5,marginBottom:4}}>
+              <div/>{['Reps','Weight','RPE'].map(l=><div key={l} style={{fontSize:9,color:'#2a3d58',textAlign:'center',textTransform:'uppercase',letterSpacing:1,fontWeight:700}}>{l}</div>)}<div/>
+            </div>
+            {ex.sets.map((s,si)=>(
+              <div key={si} className="set-grid">
+                <div className="set-num">{si+1}</div>
+                <input className="set-inp" type="number" placeholder="10" value={s.reps} onChange={e=>updSet(ei,si,'reps',e.target.value)}/>
+                <input className="set-inp" type="number" placeholder="135" value={s.weight} onChange={e=>updSet(ei,si,'weight',e.target.value)}/>
+                <input className="set-inp" type="number" placeholder="7" step="0.5" value={s.rpe} onChange={e=>updSet(ei,si,'rpe',e.target.value)}/>
+                <button style={{background:'none',border:'none',color:'#ff3d6b',cursor:'pointer',fontSize:14}} onClick={()=>{const u=[...exercises];if(u[ei].sets.length>1)u[ei].sets.splice(si,1);setExercises(u)}}>✕</button>
+              </div>
+            ))}
+            <div className="row" style={{marginTop:8,flexWrap:'wrap',gap:6}}>
+              <button className="btn btn-secondary btn-small" onClick={()=>addSet(ei)}>+ Set</button>
+              <button className="btn btn-teal btn-small" onClick={()=>getAI(ex)}>◈ AI Advice</button>
+              <button className="btn btn-danger btn-small" onClick={()=>{const u=[...exercises];u.splice(ei,1);setExercises(u);setOpenIdx(null)}}>Remove</button>
+            </div>
+            {ai.loading&&openIdx===ei&&<div className="ai-card" style={{marginTop:8}}><div className="ai-label">Analyzing...</div></div>}
+            {ai.result&&openIdx===ei&&<div className="ai-card" style={{marginTop:8}}><div className="ai-label">Progression Advice</div><div className="ai-text">{ai.result}</div></div>}
+          </div>}
+        </div>)
+      })}
+      {exercises.length>0&&<button className="btn btn-primary" style={{marginTop:12}} onClick={saveLog}>💾 SAVE SESSION</button>}
+    </>
+  )
+}
+
+// ── NUTRITION TAB ─────────────────────────────────────────────────────────────
+function NutritionTab({nutrition,setNutrition,deleteNutrition,weights,scans,notes}){
+  const [date,setDate]=useState(today())
+  const [form,setForm]=useState({calories:'',protein:'',carbs:'',fats:'',water:''})
+  const ai=useAI()
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}))
+  const save=async()=>{
+    if(!form.calories)return
+    const entry={date,...form,id:`${date}-${Date.now()}`}
+    await setNutrition([...nutrition.filter(n=>n.date!==date),entry].sort((a,b)=>a.date.localeCompare(b.date)))
+    setForm({calories:'',protein:'',carbs:'',fats:'',water:''})
+  }
+  const latest=nutrition[nutrition.length-1]
+  const chartData=nutrition.slice(-30).map(n=>({date:fmt(n.date),cal:parseFloat(n.calories)||0}))
+  const getAdvice=()=>{
+    const recent=nutrition.slice(-14)
+    const avgCal=recent.length?Math.round(recent.reduce((a,n)=>a+(parseFloat(n.calories)||0),0)/recent.length):0
+    const avgProt=recent.length?Math.round(recent.reduce((a,n)=>a+(parseFloat(n.protein)||0),0)/recent.length):0
+    const wt=weights.slice(-14);const wChange=wt.length>1?+(wt[wt.length-1].weight-wt[0].weight).toFixed(1):0
+    const ls=scans[scans.length-1]
+    const noteCtx=notes.slice(-5).map(n=>`${n.date}: "${n.text}"`).join('; ')
+    ai.ask(`Precision nutrition coach. Avg cal (14d): ${avgCal} kcal/day, avg protein: ${avgProt}g/day, 14d weight change: ${wChange}lbs, scan: ${ls?`${ls.weight}lbs, ${ls.bf}% BF, ${ls.lmm}lbs LMM`:'none'}, notes: ${noteCtx||'none'}. 5 numbered points: 1)calorie adjustment 2)protein target 3)carb/fat split 4)note adjustments 5)priority action. Specific numbers.`)
+  }
+  return(
+    <>
+      <div className="card">
+        <div className="card-title">🍽 LOG NUTRITION</div>
+        <label className="section-label">Date</label>
+        <input type="date" className="input" value={date} onChange={e=>setDate(e.target.value)}/>
+        <div className="row" style={{marginTop:10}}>
+          <div className="flex-1"><label className="section-label">Calories</label><input type="number" className="input" placeholder="2400" value={form.calories} onChange={e=>upd('calories',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Protein (g)</label><input type="number" className="input" placeholder="180" value={form.protein} onChange={e=>upd('protein',e.target.value)}/></div>
+        </div>
+        <div className="row" style={{marginTop:8}}>
+          <div className="flex-1"><label className="section-label">Carbs (g)</label><input type="number" className="input" placeholder="250" value={form.carbs} onChange={e=>upd('carbs',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Fats (g)</label><input type="number" className="input" placeholder="80" value={form.fats} onChange={e=>upd('fats',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Water (oz)</label><input type="number" className="input" placeholder="100" value={form.water} onChange={e=>upd('water',e.target.value)}/></div>
+        </div>
+        <div style={{marginTop:12}}><button className="btn btn-primary" onClick={save}>LOG DAY</button></div>
+      </div>
+      {latest&&<div className="card">
+        <div className="card-title">📊 LATEST MACROS</div>
+        {[{label:'Calories',val:`${latest.calories} kcal`,pct:Math.min((latest.calories/3000)*100,100),color:'#3d8bff'},{label:'Protein',val:`${latest.protein}g`,pct:Math.min((latest.protein/250)*100,100),color:'#00e5a0'},{label:'Carbs',val:`${latest.carbs}g`,pct:Math.min((latest.carbs/350)*100,100),color:'#00c2ff'},{label:'Fats',val:`${latest.fats}g`,pct:Math.min((latest.fats/100)*100,100),color:'#ff3d6b'},{label:'Water',val:`${latest.water}oz`,pct:Math.min((latest.water/128)*100,100),color:'#4a9eff'}].map(m=>(
+          <div key={m.label} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+            <div style={{fontSize:11,color:'#4a6080',width:70,fontWeight:700,textTransform:'uppercase'}}>{m.label}</div>
+            <div style={{flex:1,height:6,background:'#111d33',borderRadius:3,overflow:'hidden'}}><div style={{height:'100%',borderRadius:3,background:m.color,width:`${m.pct}%`,transition:'width 0.6s ease'}}/></div>
+            <div style={{fontSize:12,fontWeight:700,color:m.color,width:70,textAlign:'right'}}>{m.val}</div>
+          </div>
+        ))}
+      </div>}
+      {chartData.length>1&&<div className="card">
+        <div className="card-title">📈 CALORIE TREND</div>
+        <ResponsiveContainer width="100%" height={150}>
+          <AreaChart data={chartData} margin={{top:4,right:4,bottom:0,left:-18}}>
+            <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#1e6bff" stopOpacity={0.3}/><stop offset="100%" stopColor="#1e6bff" stopOpacity={0}/></linearGradient></defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#0f1e35"/>
+            <XAxis dataKey="date" tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false}/>
+            <YAxis tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false}/>
+            <Tooltip content={<Tip/>}/>
+            <Area type="monotone" dataKey="cal" stroke="#3d8bff" strokeWidth={2} fill="url(#cg)" dot={false} name="kcal"/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>}
+      <div className="card">
+        <div className="card-title">◈ AI MACRO ADVISOR</div>
+        <div style={{fontSize:12,color:'#4a6080',marginBottom:10}}>Uses weight trend, body scans, and notes to recommend adjustments.</div>
+        <button className="btn btn-teal btn-small" style={{marginBottom:10}} onClick={getAdvice}>Get Recommendations</button>
+        {ai.loading&&<div className="ai-card"><div className="ai-label">Calculating...</div></div>}
+        {ai.result&&<div className="ai-card"><div className="ai-label">Nutrition Plan</div><div className="ai-text">{ai.result}</div></div>}
+      </div>
+      {nutrition.length>0&&<div className="card">
+        <div className="card-title">📋 HISTORY</div>
+        {[...nutrition].reverse().slice(0,14).map(n=>(
+          <div key={n.id||n.date} className="log-item">
+            <div><div className="log-date">{fmt(n.date)}</div><div style={{fontWeight:700,fontSize:15}}>{n.calories} <span style={{color:'#4a6080',fontSize:12}}>kcal</span></div><div style={{fontSize:11,color:'#4a6080',marginTop:2}}>P:{n.protein}g C:{n.carbs}g F:{n.fats}g</div></div>
+            <button className="btn btn-danger btn-small" onClick={()=>deleteNutrition(n.id,n.date)}>✕</button>
+          </div>
+        ))}
+      </div>}
+      {nutrition.length===0&&<div className="empty"><div className="empty-icon">🍽</div><div className="empty-txt">No nutrition logged yet.</div></div>}
+    </>
+  )
+}
+
+// ── BODY TAB ──────────────────────────────────────────────────────────────────
+function BodyTab({scans,setScans,deleteScan}){
+  const [form,setForm]=useState({date:today(),weight:'',bf:'',lmm:'',height:'',goal_bf:''})
+  const ai=useAI()
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}))
+  const add=async()=>{
+    if(!form.bf||!form.weight)return
+    await setScans([...scans,{...form,id:Date.now()}].sort((a,b)=>a.date.localeCompare(b.date)))
+    setForm(f=>({...f,weight:'',bf:'',lmm:''}))
+  }
+  const latest=scans[scans.length-1];const prev=scans[scans.length-2]
+  const goalBF=parseFloat(latest?.goal_bf)||10;const currentBF=latest?parseFloat(latest.bf):null
+  const chartData=scans.map(s=>({date:fmt(s.date),bf:parseFloat(s.bf),lmm:parseFloat(s.lmm)||0}))
+  const analyze=()=>{
+    if(!latest)return
+    const ctx=scans.slice(-4).map(s=>`${s.date}: ${s.weight}lbs, ${s.bf}% BF, LMM: ${s.lmm}lbs`).join(' | ')
+    ai.ask(`Body composition coach. Scans: ${ctx}. Height: ${latest.height||'unknown'}". Goal: ${goalBF}% BF. 4 sentences: trajectory, weeks to goal, muscle loss concern, one adjustment. Numbers only.`)
+  }
+  const radius=38,circ=2*Math.PI*radius
+  const bfDash=currentBF?circ*(1-Math.min(currentBF/35,1)):circ
+  return(
+    <>
+      <div className="card">
+        <div className="card-title">📊 LOG BODY SCAN</div>
+        <div className="row">
+          <div className="flex-1"><label className="section-label">Date</label><input type="date" className="input" value={form.date} onChange={e=>upd('date',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Height (in)</label><input type="number" className="input" placeholder="70" value={form.height} onChange={e=>upd('height',e.target.value)}/></div>
+        </div>
+        <div className="row" style={{marginTop:8}}>
+          <div className="flex-1"><label className="section-label">Weight (lbs)</label><input type="number" className="input" placeholder="185" step="0.1" value={form.weight} onChange={e=>upd('weight',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">Body Fat %</label><input type="number" className="input" placeholder="18" step="0.1" value={form.bf} onChange={e=>upd('bf',e.target.value)}/></div>
+        </div>
+        <div className="row" style={{marginTop:8}}>
+          <div className="flex-1"><label className="section-label">Lean Mass (lbs)</label><input type="number" className="input" placeholder="148" step="0.1" value={form.lmm} onChange={e=>upd('lmm',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">BF% Goal</label><input type="number" className="input" placeholder="10" step="0.5" value={form.goal_bf} onChange={e=>upd('goal_bf',e.target.value)}/></div>
+        </div>
+        <div style={{marginTop:12}}><button className="btn btn-primary" onClick={add}>LOG SCAN</button></div>
+      </div>
+      {latest&&<>
+        <div className="card" style={{textAlign:'center'}}>
+          <div className="card-title" style={{justifyContent:'center'}}>🎯 GOAL PROGRESS</div>
+          <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
+            <div style={{position:'relative',width:90,height:90}}>
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r={radius} fill="none" stroke="#0d1424" strokeWidth="7"/>
+                <circle cx="45" cy="45" r={radius} fill="none" stroke="url(#bg2)" strokeWidth="7" strokeDasharray={circ} strokeDashoffset={bfDash} strokeLinecap="round" style={{transform:'rotate(-90deg)',transformOrigin:'45px 45px'}}/>
+                <defs><linearGradient id="bg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#1e6bff"/><stop offset="100%" stopColor="#00c2ff"/></linearGradient></defs>
+              </svg>
+              <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',textAlign:'center'}}>
+                <div style={{fontFamily:'Orbitron,sans-serif',fontSize:20,fontWeight:700,color:'#3d8bff',lineHeight:1}}>{currentBF}%</div>
+                <div style={{fontSize:9,color:'#4a6080',textTransform:'uppercase',letterSpacing:1}}>Body Fat</div>
+              </div>
+            </div>
+          </div>
+          <div style={{fontSize:12,color:'#4a6080'}}>Goal: {goalBF}% · {currentBF>goalBF?`${+(currentBF-goalBF).toFixed(1)}% remaining`:'🎉 Goal hit!'}</div>
+          <div style={{background:'#0d1424',borderRadius:4,height:8,overflow:'hidden',marginTop:10}}>
+            <div style={{height:'100%',borderRadius:4,background:'linear-gradient(90deg,#1e6bff,#00c2ff)',width:`${Math.min(Math.max(0,((25-currentBF)/(25-goalBF))*100),100)}%`,transition:'width 0.8s ease'}}/>
+          </div>
+        </div>
+        <div className="stat-grid">
+          <div className="stat-box"><div className="stat-val">{latest.weight}</div><div className="stat-lbl">lbs total</div></div>
+          <div className="stat-box"><div className="stat-val" style={{color:'#00c2ff'}}>{latest.lmm||'—'}</div><div className="stat-lbl">lbs lean</div></div>
+          <div className="stat-box"><div className="stat-val" style={{color:prev&&latest.lmm&&parseFloat(latest.lmm)>=parseFloat(prev.lmm)?'#00e5a0':'#ff3d6b'}}>{prev&&latest.lmm?`${+(parseFloat(latest.lmm)-parseFloat(prev.lmm)).toFixed(1)>0?'+':''}${+(parseFloat(latest.lmm)-parseFloat(prev.lmm)).toFixed(1)}`:'—'}</div><div className="stat-lbl">LMM Δ</div></div>
+        </div>
+      </>}
+      {scans.length>1&&<div className="card">
+        <div className="card-title">📉 COMPOSITION TREND</div>
+        <ResponsiveContainer width="100%" height={150}>
+          <LineChart data={chartData} margin={{top:4,right:4,bottom:0,left:-18}}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#0f1e35"/>
+            <XAxis dataKey="date" tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false}/>
+            <YAxis tick={{fill:'#2a3d58',fontSize:9}} tickLine={false} axisLine={false}/>
+            <Tooltip content={<Tip/>}/>
+            <Line type="monotone" dataKey="bf" stroke="#ff3d6b" strokeWidth={2} dot={false} name="BF%"/>
+            <Line type="monotone" dataKey="lmm" stroke="#00c2ff" strokeWidth={2} dot={false} name="LMM lbs"/>
+          </LineChart>
+        </ResponsiveContainer>
+        <div style={{display:'flex',gap:14,justifyContent:'center',marginTop:6}}>
+          <span style={{fontSize:11,color:'#ff3d6b'}}>● BF%</span>
+          <span style={{fontSize:11,color:'#00c2ff'}}>● Lean Mass</span>
+        </div>
+      </div>}
+      {latest&&<div className="card">
+        <div className="card-title">◈ AI BODY ANALYSIS</div>
+        <button className="btn btn-teal btn-small" onClick={analyze} style={{marginBottom:10}}>Analyze Composition</button>
+        {ai.loading&&<div className="ai-card"><div className="ai-label">Analyzing...</div></div>}
+        {ai.result&&<div className="ai-card"><div className="ai-label">Body Comp Coach</div><div className="ai-text">{ai.result}</div></div>}
+      </div>}
+      {scans.length>0&&<div className="card">
+        <div className="card-title">📋 SCAN HISTORY</div>
+        {[...scans].reverse().map(s=>(
+          <div key={s.id} style={{background:'#0d1424',border:'1px solid #111d33',borderRadius:8,padding:12,marginBottom:8}}>
+            <div className="log-date">{fmt(s.date)}</div>
+            <div style={{display:'flex',gap:14,marginTop:4,flexWrap:'wrap'}}>
+              <div><span style={{fontSize:11,color:'#4a6080'}}>Weight </span><strong>{s.weight} lbs</strong></div>
+              <div><span style={{fontSize:11,color:'#4a6080'}}>BF </span><strong style={{color:'#ff3d6b'}}>{s.bf}%</strong></div>
+              <div><span style={{fontSize:11,color:'#4a6080'}}>LMM </span><strong style={{color:'#00c2ff'}}>{s.lmm} lbs</strong></div>
+            </div>
+            <button className="btn btn-danger btn-small" style={{marginTop:8}} onClick={()=>deleteScan(s.id)}>Remove</button>
+          </div>
+        ))}
+      </div>}
+      {scans.length===0&&<div className="empty"><div className="empty-icon">📊</div><div className="empty-txt">No body scans logged yet.</div></div>}
+    </>
+  )
+}
+
+// ── PEPTIDE TAB ───────────────────────────────────────────────────────────────
+function PeptideTab({peptides,setPeptides,deletePeptide}){
+  const [form,setForm]=useState({name:'',custom:'',dose:'',unit:'mcg',freq:'Daily',startDate:today(),endDate:'',notes:''})
+  const ai=useAI()
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}))
+  const add=async()=>{
+    const name=form.name==='Custom'?form.custom:form.name
+    if(!name||!form.dose)return
+    await setPeptides([...peptides,{...form,name,id:Date.now()}])
+    setForm({name:'',custom:'',dose:'',unit:'mcg',freq:'Daily',startDate:today(),endDate:'',notes:''})
+  }
+  const isActive=p=>!p.endDate||p.endDate>=today()
+  const daysOn=p=>Math.round((new Date((p.endDate||today())+'T12:00:00')-new Date(p.startDate+'T12:00:00'))/86400000)
+  const getInfo=p=>ai.ask(`Peptide researcher for ${p.name} at ${p.dose}${p.unit} ${p.freq}. 4 sentences: 1)mechanism for fat loss/recomp 2)timeline for results 3)key considerations 4)optimization tip. Factual and specific.`)
+  return(
+    <>
+      <div className="card">
+        <div className="card-title">💉 LOG PROTOCOL</div>
+        <label className="section-label">Peptide</label>
+        <select className="input" value={form.name} onChange={e=>upd('name',e.target.value)}>
+          <option value="">Select peptide...</option>
+          {PEPTIDES_LIST.map(p=><option key={p}>{p}</option>)}
+          <option value="Custom">Custom...</option>
+        </select>
+        {form.name==='Custom'&&<input className="input" style={{marginTop:8}} placeholder="Peptide name" value={form.custom} onChange={e=>upd('custom',e.target.value)}/>}
+        <div className="row" style={{marginTop:10}}>
+          <div className="flex-1"><label className="section-label">Dose</label><input type="number" className="input" placeholder="500" value={form.dose} onChange={e=>upd('dose',e.target.value)}/></div>
+          <div style={{width:80}}><label className="section-label">Unit</label><select className="input" value={form.unit} onChange={e=>upd('unit',e.target.value)}>{['mcg','mg','IU','ml'].map(u=><option key={u}>{u}</option>)}</select></div>
+          <div style={{width:100}}><label className="section-label">Freq</label><select className="input" value={form.freq} onChange={e=>upd('freq',e.target.value)}>{['Daily','2x/day','EOD','3x/week','Weekly','As needed'].map(f=><option key={f}>{f}</option>)}</select></div>
+        </div>
+        <div className="row" style={{marginTop:10}}>
+          <div className="flex-1"><label className="section-label">Start</label><input type="date" className="input" value={form.startDate} onChange={e=>upd('startDate',e.target.value)}/></div>
+          <div className="flex-1"><label className="section-label">End (opt)</label><input type="date" className="input" value={form.endDate} onChange={e=>upd('endDate',e.target.value)}/></div>
+        </div>
+        <div style={{marginTop:10}}><label className="section-label">Notes</label><input className="input" placeholder="Timing, rotation, etc." value={form.notes} onChange={e=>upd('notes',e.target.value)}/></div>
+        <div style={{marginTop:12}}><button className="btn btn-primary" onClick={add}>ADD TO PROTOCOL</button></div>
+      </div>
+      {peptides.filter(isActive).length>0&&<div className="card">
+        <div className="card-title" style={{color:'#00e5a0'}}>● ACTIVE STACK</div>
+        {peptides.filter(isActive).map(p=>(
+          <div key={p.id} style={{background:'#0d1424',border:'1px solid #111d33',borderRadius:10,padding:14,marginBottom:8}}>
+            <div style={{fontWeight:700,fontSize:16,color:'#00c2ff',marginBottom:4}}>{p.name}</div>
+            <div style={{fontSize:12,color:'#4a6080',marginBottom:2}}>💊 {p.dose}{p.unit} · {p.freq}</div>
+            <div style={{fontSize:12,color:'#4a6080',marginBottom:2}}>📅 Started {fmt(p.startDate)}</div>
+            {p.notes&&<div style={{fontSize:12,color:'#4a6080',marginBottom:2}}>📝 {p.notes}</div>}
+            <div style={{display:'inline-block',background:'rgba(0,194,255,0.1)',border:'1px solid rgba(0,194,255,0.25)',color:'#00c2ff',borderRadius:5,padding:'3px 9px',fontSize:11,fontWeight:700,marginTop:6}}>Day {daysOn(p)}</div>
+            <div className="row" style={{marginTop:10,gap:6}}>
+              <button className="btn btn-teal btn-small" onClick={()=>getInfo(p)}>◈ Research</button>
+              <button className="btn btn-danger btn-small" onClick={()=>setPeptides(peptides.map(x=>x.id===p.id?{...x,endDate:today()}:x))}>End</button>
+              <button className="btn btn-danger btn-small" onClick={()=>deletePeptide(p.id)}>✕</button>
+            </div>
+          </div>
+        ))}
+        {ai.loading&&<div className="ai-card"><div className="ai-label">Researching...</div></div>}
+        {ai.result&&<div className="ai-card"><div className="ai-label">Research Brief</div><div className="ai-text">{ai.result}</div></div>}
+      </div>}
+      {peptides.filter(p=>!isActive(p)).length>0&&<div className="card">
+        <div className="card-title" style={{color:'#2a3d58'}}>⬛ PAST PROTOCOLS</div>
+        {peptides.filter(p=>!isActive(p)).map(p=>(
+          <div key={p.id} style={{background:'#0d1424',border:'1px solid #111d33',borderRadius:10,padding:14,marginBottom:8,opacity:0.55}}>
+            <div style={{fontWeight:700,color:'#4a6080'}}>{p.name}</div>
+            <div style={{fontSize:12,color:'#2a3d58'}}>{p.dose}{p.unit} · {p.freq} · {fmt(p.startDate)} → {fmt(p.endDate)} · {daysOn(p)} days</div>
+            <button className="btn btn-danger btn-small" style={{marginTop:8}} onClick={()=>deletePeptide(p.id)}>Remove</button>
+          </div>
+        ))}
+      </div>}
+      {peptides.length===0&&<div className="empty"><div className="empty-icon">💉</div><div className="empty-txt">No protocols logged yet.</div></div>}
+    </>
+  )
+}
+
+// ── NOTES TAB ─────────────────────────────────────────────────────────────────
+function NotesTab({notes,setNotes,deleteNote}){
+  const [date,setDate]=useState(today())
+  const [text,setText]=useState('')
+  const [tag,setTag]=useState('General')
+  const TAGS=['General','Supplement','Peptide','Training','Diet','Health','PR']
+  const tagColor=t=>({Supplement:'tag-teal',Peptide:'tag-blue',PR:'tag-green',Health:'tag-red'}[t]||'tag-blue')
+  const add=async()=>{
+    if(!text.trim())return
+    await setNotes([...notes,{date,text:text.trim(),tag,id:Date.now()}])
+    setText('')
+  }
+  return(
+    <>
+      <div className="card">
+        <div className="card-title">📝 ADD NOTE</div>
+        <div style={{fontSize:12,color:'#4a6080',marginBottom:12}}>Log events like starting creatine, peptide changes, illness, PRs — AI uses these to explain unusual data shifts.</div>
+        <div className="row">
+          <div className="flex-1"><label className="section-label">Date</label><input type="date" className="input" value={date} onChange={e=>setDate(e.target.value)}/></div>
+          <div style={{width:110}}><label className="section-label">Tag</label><select className="input" value={tag} onChange={e=>setTag(e.target.value)}>{TAGS.map(t=><option key={t}>{t}</option>)}</select></div>
+        </div>
+        <div style={{marginTop:10}}><label className="section-label">Note</label><textarea className="input" placeholder="e.g. Started creatine 5g/day — expect 3-5lb water weight gain over 2 weeks..." value={text} onChange={e=>setText(e.target.value)}/></div>
+        <div style={{marginTop:12}}><button className="btn btn-primary" onClick={add}>SAVE NOTE</button></div>
+      </div>
+      {notes.length>0&&<div className="card">
+        <div className="card-title">📋 ALL NOTES</div>
+        {[...notes].reverse().map(n=>(
+          <div key={n.id} style={{background:'#0d1424',borderLeft:'3px solid #1e6bff',borderRadius:'0 8px 8px 0',borderTop:'1px solid #111d33',borderRight:'1px solid #111d33',borderBottom:'1px solid #111d33',padding:'10px 12px',marginBottom:8}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div>
+                <div className="log-date">{fmt(n.date)}</div>
+                <span className={`tag ${tagColor(n.tag)}`} style={{marginBottom:6,display:'inline-block'}}>{n.tag}</span>
+                <div style={{fontSize:13,color:'#e8f0ff',lineHeight:1.5,marginTop:4}}>{n.text}</div>
+              </div>
+              <button className="btn btn-danger btn-small" style={{marginLeft:8,flexShrink:0}} onClick={()=>deleteNote(n.id)}>✕</button>
+            </div>
+          </div>
+        ))}
+      </div>}
+      {notes.length===0&&<div className="empty"><div className="empty-icon">📝</div><div className="empty-txt">No notes yet.<br/>Log events to help AI explain your data.</div></div>}
+    </>
+  )
+}
+
+// ── INSIGHTS TAB ──────────────────────────────────────────────────────────────
+function InsightsTab({weights,logs,scans,peptides,nutrition,notes}){
+  const ai=useAI()
+  const thisWeek=logs.filter(l=>Math.round((new Date()-new Date(l.date+'T12:00:00'))/86400000)<=7).length
+  const activePeptides=peptides.filter(p=>!p.endDate||p.endDate>=today())
+  const latestScan=scans[scans.length-1]
+  const avgCal=nutrition.slice(-7).length?Math.round(nutrition.slice(-7).reduce((a,n)=>a+(parseFloat(n.calories)||0),0)/nutrition.slice(-7).length):0
+  const wt7=weights.slice(-7);const wChange7=wt7.length>1?+(wt7[wt7.length-1].weight-wt7[0].weight).toFixed(1):null
+  const fullBrief=()=>{
+    const wt=weights.slice(-14).map(w=>`${w.date}:${w.weight}lbs`).join(',')
+    const scan=latestScan?`${latestScan.weight}lbs, ${latestScan.bf}% BF, ${latestScan.lmm}lbs LMM`:'none'
+    const stack=activePeptides.map(p=>`${p.name} ${p.dose}${p.unit} ${p.freq}`).join(', ')||'none'
+    const noteCtx=notes.slice(-6).map(n=>`${n.date} [${n.tag}]: ${n.text}`).join(' | ')||'none'
+    ai.ask(`Elite fitness coach. Weight (14d): ${wt}. Scan: ${scan}. Peptides: ${stack}. Avg cal (7d): ${avgCal} kcal. Training: ${thisWeek} sessions/week, ${logs.length} total. Notes: ${noteCtx}. 5-point brief: 1)TRAJECTORY 2)TRAINING 3)NUTRITION 4)PROTOCOL 5)PRIORITY ACTION. Account for supplement/peptide notes. Specific numbers.`)
+  }
+  const iRow=(icon,bg,title,body)=>(
+    <div style={{display:'flex',gap:10,padding:'10px 0',borderBottom:'1px solid #111d33'}}>
+      <div style={{width:34,height:34,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,marginTop:2,background:bg}}>{icon}</div>
+      <div><div style={{fontWeight:700,fontSize:13,marginBottom:2}}>{title}</div><div style={{fontSize:12,color:'#3a5070',lineHeight:1.5}}>{body}</div></div>
+    </div>
+  )
+  return(
+    <>
+      <div className="stat-grid">
+        <div className="stat-box"><div className="stat-val">{logs.length}</div><div className="stat-lbl">Sessions</div></div>
+        <div className="stat-box"><div className="stat-val">{thisWeek}</div><div className="stat-lbl">This Week</div></div>
+        <div className="stat-box"><div className="stat-val" style={{color:'#00c2ff'}}>{activePeptides.length}</div><div className="stat-lbl">Peptides</div></div>
+      </div>
+      <div className="stat-grid">
+        <div className="stat-box"><div className="stat-val" style={{color:wChange7<0?'#00e5a0':wChange7>0?'#ff3d6b':'#4a6080'}}>{wChange7!==null?(wChange7>0?`+${wChange7}`:wChange7):'—'}</div><div className="stat-lbl">7d Wt Δ</div></div>
+        <div className="stat-box"><div className="stat-val">{avgCal||'—'}</div><div className="stat-lbl">Avg kcal</div></div>
+        <div className="stat-box"><div className="stat-val" style={{color:'#ff3d6b'}}>{latestScan?.bf?`${latestScan.bf}%`:'—'}</div><div className="stat-lbl">Last BF%</div></div>
+      </div>
+      <div className="card">
+        <div className="card-title">💡 AUTO INSIGHTS</div>
+        {iRow('⚖','rgba(30,107,255,0.12)','Weight Trend',wChange7!==null?`7-day: ${wChange7>0?'+':''}${wChange7} lbs. ${Math.abs(wChange7)<=1.5?'Rate looks sustainable.':Math.abs(wChange7)>2.5?'Rate is aggressive — verify calories and muscle retention.':'Slightly high — monitor closely.'}`:'Log at least 7 weigh-ins to see trend.')}
+        {iRow('🏋','rgba(0,194,255,0.12)','Training Volume',thisWeek>=5?`${thisWeek}/7 days — excellent consistency.`:thisWeek>=3?`${thisWeek}/7 days — push toward 5-6 for optimal results.`:`${thisWeek}/7 days — frequency is low. Aim for 5-6 days/week.`)}
+        {iRow('🍽','rgba(0,229,160,0.12)','Nutrition',avgCal>0?`7-day avg: ${avgCal} kcal. ${wChange7>1?'Weight rising — consider cutting 150-200 kcal.':wChange7<-1.5?'Dropping fast — verify protein is sufficient.':'Intake appears calibrated.'}`:'Log nutrition to get recommendations.')}
+        {iRow('💉','rgba(0,194,255,0.12)','Protocol',activePeptides.length>0?`Active: ${activePeptides.map(p=>p.name).join(', ')}.`:'No active protocols. Log your stack in the Stack tab.')}
+        {notes.length>0&&iRow('📝','rgba(30,107,255,0.12)','Latest Note',`${notes[notes.length-1]?.text?.slice(0,100)}${notes[notes.length-1]?.text?.length>100?'…':''}`)}
+      </div>
+      <div className="card">
+        <div className="card-title">◈ FULL AI BRIEF</div>
+        <div style={{fontSize:12,color:'#4a6080',marginBottom:10}}>Synthesizes all your data — weight, workouts, nutrition, body scans, peptides, and notes.</div>
+        <button className="btn btn-primary" onClick={fullBrief}>GENERATE COACHING BRIEF</button>
+        {ai.loading&&<div className="ai-card" style={{marginTop:10}}><div className="ai-label">Processing all data...</div></div>}
+        {ai.result&&<div className="ai-card" style={{marginTop:10}}><div className="ai-label">Coaching Brief</div><div className="ai-text">{ai.result}</div></div>}
+      </div>
+    </>
+  )
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App(){
+  const [session,setSession]=useState(null)
+  const [loading,setLoading]=useState(true)
+  const [tab,setTab]=useState(0)
+  const [weights,setWeightsS]=useState([])
+  const [logs,setLogsS]=useState([])
+  const [plans,setPlansS]=useState({})
+  const [nutrition,setNutritionS]=useState([])
+  const [scans,setScansS]=useState([])
+  const [peptides,setPeptidesS]=useState([])
+  const [notes,setNotesS]=useState([])
+
+  useEffect(()=>{
+    sb.auth.getSession().then(({data:{session}})=>{setSession(session);setLoading(false)})
+    const{data:{subscription}}=sb.auth.onAuthStateChange((_,s)=>setSession(s))
+    return()=>subscription.unsubscribe()
+  },[])
+
+  useEffect(()=>{if(session)loadAll()},[session])
+
+  const uid=()=>session?.user?.id
+
+  const loadAll=async()=>{
+    const u=uid();if(!u)return
+    try{
+      const[w,l,p,n,s,pep,nt]=await Promise.all([
+        sb.from('weights').select('*').eq('user_id',u).order('date'),
+        sb.from('workout_logs').select('*').eq('user_id',u).order('date'),
+        sb.from('workout_plans').select('*').eq('user_id',u).single(),
+        sb.from('nutrition').select('*').eq('user_id',u).order('date'),
+        sb.from('body_scans').select('*').eq('user_id',u).order('date'),
+        sb.from('peptides').select('*').eq('user_id',u).order('start_date'),
+        sb.from('notes').select('*').eq('user_id',u).order('date'),
+      ])
+      if(w.data)setWeightsS(w.data)
+      if(l.data)setLogsS(l.data.map(r=>({...r,exercises:r.exercises||[]})))
+      if(p.data)setPlansS(p.data.plans||{})
+      if(n.data)setNutritionS(n.data)
+      if(s.data)setScansS(s.data)
+      if(pep.data)setPeptidesS(pep.data)
+      if(nt.data)setNotesS(nt.data)
+    }catch(e){console.error(e)}
+  }
+
+  const setWeights=async rows=>{setWeightsS(rows);await sb.from('weights').upsert(rows.map(r=>({...r,user_id:uid()})),{onConflict:'user_id,date'})}
+  const deleteWeight=async date=>{setWeightsS(w=>w.filter(x=>x.date!==date));await sb.from('weights').delete().eq('user_id',uid()).eq('date',date)}
+  const setLogs=async rows=>{setLogsS(rows);await sb.from('workout_logs').upsert(rows.map(r=>({...r,user_id:uid(),exercises:r.exercises||[]})),{onConflict:'id'})}
+  const deleteLog=async id=>{setLogsS(l=>l.filter(x=>x.id!==id));await sb.from('workout_logs').delete().eq('id',id).eq('user_id',uid())}
+  const setPlans=async p=>{setPlansS(p);await sb.from('workout_plans').upsert({user_id:uid(),plans:p},{onConflict:'user_id'})}
+  const setNutrition=async rows=>{setNutritionS(rows);await sb.from('nutrition').upsert(rows.map(r=>({...r,user_id:uid()})),{onConflict:'user_id,date'})}
+  const deleteNutrition=async(id,date)=>{setNutritionS(n=>n.filter(x=>(x.id||x.date)!==(id||date)));if(id)await sb.from('nutrition').delete().eq('id',id).eq('user_id',uid());else await sb.from('nutrition').delete().eq('date',date).eq('user_id',uid())}
+  const setScans=async rows=>{setScansS(rows);await sb.from('body_scans').upsert(rows.map(r=>({...r,user_id:uid()})),{onConflict:'id'})}
+  const deleteScan=async id=>{setScansS(s=>s.filter(x=>x.id!==id));await sb.from('body_scans').delete().eq('id',id).eq('user_id',uid())}
+  const setPeptides=async rows=>{setPeptidesS(rows);await sb.from('peptides').upsert(rows.map(r=>({...r,user_id:uid()})),{onConflict:'id'})}
+  const deletePeptide=async id=>{setPeptidesS(p=>p.filter(x=>x.id!==id));await sb.from('peptides').delete().eq('id',id).eq('user_id',uid())}
+  const setNotes=async rows=>{setNotesS(rows);await sb.from('notes').upsert(rows.map(r=>({...r,user_id:uid()})),{onConflict:'id'})}
+  const deleteNote=async id=>{setNotesS(n=>n.filter(x=>x.id!==id));await sb.from('notes').delete().eq('id',id).eq('user_id',uid())}
+
+  const TABS=[{icon:'⚖',label:'Weight'},{icon:'🏋',label:'Train'},{icon:'🍽',label:'Nutrition'},{icon:'📊',label:'Body'},{icon:'💉',label:'Stack'},{icon:'📝',label:'Notes'},{icon:'💡',label:'Insights'}]
+
+  if(loading)return React.createElement('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement('div',{style:{fontFamily:'Rajdhani',color:'#1e6bff',fontSize:14,letterSpacing:3,textTransform:'uppercase'}},'Loading...'))
+  if(!session)return React.createElement(AuthScreen,null)
+
+  return(
+    <div className="app">
+      <div className="header">
+        <div className="header-inner">
+          <div><div className="logo">LEVELUP</div><div className="logo-sub">Performance Tracker</div></div>
+          <div className="header-right">
+            <div className="live-dot">Live</div>
+            <button className="signout-btn" onClick={()=>sb.auth.signOut()}>Sign Out</button>
+          </div>
+        </div>
+      </div>
+      <div className="content">
+        {tab===0&&<WeightTab weights={weights} setWeights={setWeights} deleteWeight={deleteWeight} notes={notes}/>}
+        {tab===1&&<WorkoutTab logs={logs} setLogs={setLogs} deleteLog={deleteLog} plans={plans} setPlans={setPlans}/>}
+        {tab===2&&<NutritionTab nutrition={nutrition} setNutrition={setNutrition} deleteNutrition={deleteNutrition} weights={weights} scans={scans} notes={notes}/>}
+        {tab===3&&<BodyTab scans={scans} setScans={setScans} deleteScan={deleteScan}/>}
+        {tab===4&&<PeptideTab peptides={peptides} setPeptides={setPeptides} deletePeptide={deletePeptide}/>}
+        {tab===5&&<NotesTab notes={notes} setNotes={setNotes} deleteNote={deleteNote}/>}
+        {tab===6&&<InsightsTab weights={weights} logs={logs} scans={scans} peptides={peptides} nutrition={nutrition} notes={notes}/>}
+      </div>
+      <div className="tabs">
+        {TABS.map((t,i)=>(
+          <button key={i} className={`tab${tab===i?' active':''}`} onClick={()=>setTab(i)}>
+            <span className="tab-icon">{t.icon}</span>{t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App))
+</script>
+</body>
+</html>
