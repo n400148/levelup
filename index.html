@@ -857,6 +857,7 @@ function InsightsTab({weights,logs,scans,peptides,nutrition,notes,goals,suppleme
       <div className="card">
         <div className="card-title">◈ FULL AI BRIEF</div>
         <div style={{fontSize:12,color:'#4a6080',marginBottom:10}}>Synthesizes all your data — weight, workouts, nutrition, body scans, stack, and notes.</div>
+        <button className="btn btn-teal btn-small" style={{marginBottom:8,width:'100%'}} onClick={()=>ai.ask('Say exactly this: AI is working correctly.')}>🧪 Test AI Connection</button>
         <button className="btn btn-primary" onClick={brief}>GENERATE COACHING BRIEF</button>
         <AIBox ai={ai}/>
       </div>
@@ -908,9 +909,9 @@ function App(){
       if(p.data)setPlansS(p.data.plans||{});
       if(n.data)setNutritionS(n.data);
       if(s.data)setScansS(s.data);
-      if(pep.data)setPeptidesS(pep.data);
+      if(pep.data)setPeptidesS(pep.data.map(r=>({...r,startDate:r.start_date,endDate:r.end_date})));
       if(nt.data)setNotesS(nt.data);
-      if(supp.data)setSupplementsS(supp.data);
+      if(supp.data)setSupplementsS(supp.data.map(r=>({...r,startDate:r.start_date,endDate:r.end_date})));
       if(gl.data)setGoalsS(gl.data.goals||null);
     }catch(e){console.error('loadAll:',e);}
   };
@@ -923,11 +924,11 @@ function App(){
   const setPlans=async p=>{setPlansS(p);try{await sb.from('workout_plans').upsert({user_id:uid_(),plans:p},{});}catch(e){console.error(e);}};
   const setNutrition=async rows=>{setNutritionS(rows);try{await sb.from('nutrition').upsert(rows.map(r=>({...r,user_id:uid_(),id:r.id||`n-${r.date}-${uid_()}`})),{});}catch(e){console.error(e);}};
   const deleteNutrition=async(id,date)=>{setNutritionS(n=>n.filter(x=>(x.id||x.date)!==(id||date)));try{if(id)await sb.from('nutrition').delete().eq('id',id).eq('user_id',uid_());else await sb.from('nutrition').delete().eq('date',date).eq('user_id',uid_());}catch(e){}};
-  const setScans=async rows=>{setScansS(rows);try{await sb.from('body_scans').upsert(rows.map(r=>({...r,user_id:uid_()})),{});}catch(e){console.error(e);}};
+  const setScans=async rows=>{setScansS(rows);try{await sb.from('body_scans').upsert(rows.map(r=>({id:r.id,user_id:uid_(),date:r.date,weight:r.weight,bf:r.bf,lmm:r.lmm,height:r.height,goal_bf:r.goal_bf})),{});}catch(e){console.error('scans:',e);}};
   const deleteScan=async id=>{setScansS(s=>s.filter(x=>x.id!==id));try{await sb.from('body_scans').delete().eq('id',id).eq('user_id',uid_());}catch(e){}};
-  const setPeptides=async rows=>{setPeptidesS(rows);try{await sb.from('peptides').upsert(rows.map(r=>({...r,user_id:uid_()})),{});}catch(e){console.error(e);}};
+  const setPeptides=async rows=>{setPeptidesS(rows);try{const mapped=rows.map(r=>({id:r.id,user_id:uid_(),name:r.name,dose:r.dose,unit:r.unit,freq:r.freq,start_date:r.startDate||r.start_date,end_date:r.endDate||r.end_date||null,notes:r.notes}));await sb.from('peptides').upsert(mapped,{});}catch(e){console.error('peptides:',e);}};
   const deletePeptide=async id=>{setPeptidesS(p=>p.filter(x=>x.id!==id));try{await sb.from('peptides').delete().eq('id',id).eq('user_id',uid_());}catch(e){}};
-  const setSupplements=async rows=>{setSupplementsS(rows);try{await sb.from('supplements').upsert(rows.map(r=>({...r,user_id:uid_()})),{});}catch(e){console.error(e);}};
+  const setSupplements=async rows=>{setSupplementsS(rows);try{const mapped=rows.map(r=>({id:r.id,user_id:uid_(),name:r.name,dose:r.dose,unit:r.unit,freq:r.freq,start_date:r.startDate||r.start_date,end_date:r.endDate||r.end_date||null,notes:r.notes}));await sb.from('supplements').upsert(mapped,{});}catch(e){console.error('supplements:',e);}};
   const deleteSupplement=async id=>{setSupplementsS(s=>s.filter(x=>x.id!==id));try{await sb.from('supplements').delete().eq('id',id).eq('user_id',uid_());}catch(e){}};
   const setNotes=async rows=>{setNotesS(rows);try{await sb.from('notes').upsert(rows.map(r=>({...r,user_id:uid_()})),{});}catch(e){console.error(e);}};
   const deleteNote=async id=>{setNotesS(n=>n.filter(x=>x.id!==id));try{await sb.from('notes').delete().eq('id',id).eq('user_id',uid_());}catch(e){}};
