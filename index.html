@@ -135,7 +135,7 @@ const SUPABASE_URL = 'https://uorwaxkedqvogfeghjnu.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_UOYqW1KMvsyaY8aDUMDSPg_98zk-SAx'
 // ─────────────────────────────────────────────────────────────────────────────
 
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = { auth: { getSession: async()=>({data:{session:null}}), onAuthStateChange: ()=>({data:{subscription:{unsubscribe:()=>{}}}}), signInWithPassword: async()=>({}), signUp: async()=>({}), signOut: async()=>({}) }, from: ()=>({ select: ()=>({ eq: ()=>({ eq: ()=>({ order: ()=>({data:[],error:null}), single: ()=>({data:null,error:null}) }) }) }) , upsert: async()=>({}), delete: ()=>({ eq: ()=>({ eq: ()=>({}) }) }) }) };
 
 const today = () => new Date().toISOString().split('T')[0];
 const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
