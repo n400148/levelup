@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #000000;
+  --bg-raised: #080c14;
+  --bg-inset: #0d1424;
+  --bg-inset-2: #111d33;
+  --border: #1a2a44;
+  --border-soft: #111d33;
+  --text: #e8f0ff;
+  --text-dim: #8090a8;
+  --text-mute: #4a6080;
+  --text-faint: #2a3d58;
+  --accent: #1e6bff;
+  --accent-2: #00c2ff;
+  --accent-grad: linear-gradient(135deg, #1e6bff, #00c2ff);
+  --success: #00e5a0;
+  --danger: #ff3d6b;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-inset: var(--bg-inset);
+  --color-bg-inset-2: var(--bg-inset-2);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-mute: var(--text-mute);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-display: var(--font-orbitron);
+  --font-body: var(--font-rajdhani);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-rajdhani), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+.app-grid-bg {
+  background-image:
+    linear-gradient(rgba(30, 107, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 107, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.font-display {
+  font-family: var(--font-orbitron), sans-serif;
+}
+
+.text-gradient {
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-btn {
+  box-shadow: 0 0 20px rgba(30, 107, 255, 0.28);
+}
+
+.card {
+  position: relative;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.45;
+}
+
+.tap-scale {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.tap-scale:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.animate-blink {
+  animation: blink 1.8s infinite;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise {
+  animation: rise-in 260ms ease both;
+}
+
+input, textarea, select {
+  font-family: var(--font-rajdhani), sans-serif;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
