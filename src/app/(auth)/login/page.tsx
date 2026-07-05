@@ -31,11 +31,9 @@ export default function LoginPage() {
 
   return (
     <div className="relative z-10 w-full max-w-[380px] mx-5 card p-9">
-      <div className="text-center mb-7">
-        <div className="font-display text-[26px] font-black tracking-[0.15em] text-gradient">LIFTCIPHER</div>
-        <div className="text-[10px] tracking-[0.25em] text-[var(--text-faint)] uppercase mt-1 font-bold">
-          Decode Your Progress
-        </div>
+      <div className="text-center mb-8">
+        <div className="font-display text-[28px] font-semibold text-gradient">LiftCipher</div>
+        <div className="text-[13px] text-[var(--text-mute)] mt-1.5">Decode your progress</div>
       </div>
       <form onSubmit={handleSubmit}>
         <Label>Email</Label>

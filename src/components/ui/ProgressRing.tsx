@@ -29,15 +29,15 @@ export function ProgressRing({
         />
         <defs>
           <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1e6bff" />
-            <stop offset="100%" stopColor="#00c2ff" />
+            <stop offset="0%" stopColor="#6c5ce7" />
+            <stop offset="100%" stopColor="#9b8cff" />
           </linearGradient>
         </defs>
       </svg>
       <div className="-mt-16 text-center">
-        <div className="font-display text-[20px] font-bold text-[#3d8bff]">{label}</div>
+        <div className="font-display text-[20px] font-semibold text-[var(--text)]">{label}</div>
       </div>
-      <div className="text-[10px] text-[var(--text-mute)] uppercase tracking-wide mt-2 font-bold text-center">
+      <div className="text-[11px] text-[var(--text-mute)] mt-2 font-medium text-center">
         {sublabel}
       </div>
     </div>

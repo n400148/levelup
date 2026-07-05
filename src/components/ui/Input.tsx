@@ -1,11 +1,11 @@
 import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 const base =
-  "w-full bg-[var(--bg-inset)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-[15px] font-medium text-[var(--text)] outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(30,107,255,0.18)] transition-shadow";
+  "w-full bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-[15px] font-medium text-[var(--text)] outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(108,92,231,0.18)] transition-shadow";
 
 export function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-[10px] tracking-wide uppercase text-[var(--text-mute)] font-bold mb-1.5 mt-3 first:mt-0">
+    <label className="block text-[11.5px] text-[var(--text-mute)] font-medium mb-1.5 mt-3.5 first:mt-0">
       {children}
     </label>
   );

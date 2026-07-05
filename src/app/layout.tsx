@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Orbitron, Rajdhani } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister";
 
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
+const display = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["700", "900"],
+  weight: ["500", "600", "700"],
 });
 
-const rajdhani = Rajdhani({
-  variable: "--font-rajdhani",
+const body = Inter({
+  variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -40,7 +40,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#000000",
+  themeColor: "#0a0a0c",
 };
 
 export default function RootLayout({
@@ -49,8 +49,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${orbitron.variable} ${rajdhani.variable} h-full`}>
-      <body className="h-full bg-black text-[var(--text)] antialiased">
+    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
+      <body className="h-full bg-[var(--bg)] text-[var(--text)] antialiased">
         <AuthProvider>{children}</AuthProvider>
         <ServiceWorkerRegister />
       </body>

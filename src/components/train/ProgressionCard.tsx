@@ -14,13 +14,13 @@ export function ProgressionCard({ result }: { result: ProgressionResult }) {
     <div
       className={`rounded-lg px-3 py-2.5 mb-2 border ${
         isAdd
-          ? "bg-[rgba(0,229,160,0.08)] border-[rgba(0,229,160,0.3)]"
-          : "bg-[rgba(30,107,255,0.08)] border-[rgba(30,107,255,0.25)]"
+          ? "bg-[rgba(52,211,153,0.08)] border-[rgba(52,211,153,0.3)]"
+          : "bg-[rgba(108,92,231,0.08)] border-[rgba(108,92,231,0.25)]"
       }`}
     >
       <div
         className={`text-[9px] font-bold tracking-widest uppercase mb-1 ${
-          isAdd ? "text-[var(--success)]" : "text-[#3d8bff]"
+          isAdd ? "text-[var(--success)]" : "text-[#a996ff]"
         }`}
       >
         {isAdd ? "▲ Add Weight" : "● Beat Your Reps"} · {result.repRangeLabel}

@@ -17,36 +17,36 @@ export function WeightChart({ entries }: { entries: WeightEntry[] }) {
         <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
           <XAxis
             dataKey="label"
-            tick={{ fill: "#4a6080", fontSize: 9 }}
-            axisLine={{ stroke: "#1a2a44" }}
+            tick={{ fill: "#86868f", fontSize: 9 }}
+            axisLine={{ stroke: "#35353c" }}
             tickLine={false}
             interval="preserveStartEnd"
           />
           <YAxis
             domain={[min - pad, max + pad]}
-            tick={{ fill: "#4a6080", fontSize: 9 }}
+            tick={{ fill: "#86868f", fontSize: 9 }}
             axisLine={false}
             tickLine={false}
             width={34}
           />
           <Tooltip
             contentStyle={{
-              background: "#0d1424",
-              border: "1px solid #1a2a44",
+              background: "#1e1e23",
+              border: "1px solid #35353c",
               borderRadius: 8,
               fontSize: 12,
             }}
-            labelStyle={{ color: "#8090a8" }}
-            itemStyle={{ color: "#3d8bff" }}
+            labelStyle={{ color: "#b0b0b8" }}
+            itemStyle={{ color: "#a996ff" }}
             formatter={(v) => [`${Number(v ?? 0).toFixed(1)} lb`, "Weight"]}
           />
           <Line
             type="monotone"
             dataKey="weight"
-            stroke="#1e6bff"
+            stroke="#6c5ce7"
             strokeWidth={2.5}
-            dot={{ r: 2.5, fill: "#00c2ff", strokeWidth: 0 }}
-            activeDot={{ r: 4.5, fill: "#00c2ff" }}
+            dot={{ r: 2.5, fill: "#9b8cff", strokeWidth: 0 }}
+            activeDot={{ r: 4.5, fill: "#9b8cff" }}
           />
         </LineChart>
       </ResponsiveContainer>

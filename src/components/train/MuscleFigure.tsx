@@ -1,8 +1,8 @@
 import type { MuscleKey } from "@/lib/train-data";
 
-const OFF = "#1c2c48";
-const ON = "#ff3d6b";
-const OUTLINE = "#0d1424";
+const OFF = "#2c2c33";
+const ON = "#f87171";
+const OUTLINE = "#1e1e23";
 
 function fill(active: boolean) {
   return active ? ON : OFF;
@@ -23,7 +23,7 @@ export function MuscleFigure({ highlighted }: { highlighted: MuscleKey[] }) {
       {/* torso base silhouette */}
       <path
         d="M 30 40 Q 50 34 70 40 L 74 96 Q 50 104 26 96 Z"
-        fill="#111d33"
+        fill="#29292f"
         stroke={OUTLINE}
         strokeWidth="1"
       />
@@ -85,11 +85,11 @@ export function MuscleFigure({ highlighted }: { highlighted: MuscleKey[] }) {
 export function PulseFigure() {
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden>
-      <circle cx="50" cy="50" r="34" fill="none" stroke="#ff3d6b" strokeWidth="2" opacity="0.35" />
+      <circle cx="50" cy="50" r="34" fill="none" stroke="#f87171" strokeWidth="2" opacity="0.35" />
       <path
         d="M 12 52 L 32 52 L 40 34 L 50 68 L 58 44 L 64 52 L 88 52"
         fill="none"
-        stroke="#ff3d6b"
+        stroke="#f87171"
         strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"

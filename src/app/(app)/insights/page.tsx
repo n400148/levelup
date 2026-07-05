@@ -162,7 +162,7 @@ export default function InsightsPage() {
         </Button>
         {briefError && <p className="text-[var(--danger)] text-[12px] mt-3">{briefError}</p>}
         {brief && (
-          <div className="mt-3 bg-gradient-to-br from-[rgba(30,107,255,0.08)] to-[rgba(0,194,255,0.05)] border border-[rgba(30,107,255,0.3)] rounded-lg p-3.5">
+          <div className="mt-3 bg-gradient-to-br from-[rgba(108,92,231,0.08)] to-[rgba(155,140,255,0.05)] border border-[rgba(108,92,231,0.3)] rounded-lg p-3.5">
             <div className="text-[9px] tracking-widest uppercase text-[var(--accent-2)] font-bold mb-2">
               ◈ Coach Brief
             </div>

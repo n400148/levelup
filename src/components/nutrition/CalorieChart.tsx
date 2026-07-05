@@ -15,14 +15,14 @@ export function CalorieChart({ entries }: { entries: NutritionEntry[] }) {
     <div className="h-[150px] -mx-2">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-          <XAxis dataKey="label" tick={{ fill: "#4a6080", fontSize: 9 }} axisLine={{ stroke: "#1a2a44" }} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tick={{ fill: "#4a6080", fontSize: 9 }} axisLine={false} tickLine={false} width={34} />
+          <XAxis dataKey="label" tick={{ fill: "#86868f", fontSize: 9 }} axisLine={{ stroke: "#35353c" }} tickLine={false} interval="preserveStartEnd" />
+          <YAxis tick={{ fill: "#86868f", fontSize: 9 }} axisLine={false} tickLine={false} width={34} />
           <Tooltip
-            contentStyle={{ background: "#0d1424", border: "1px solid #1a2a44", borderRadius: 8, fontSize: 12 }}
-            labelStyle={{ color: "#8090a8" }}
+            contentStyle={{ background: "#1e1e23", border: "1px solid #35353c", borderRadius: 8, fontSize: 12 }}
+            labelStyle={{ color: "#b0b0b8" }}
             formatter={(v) => [`${Number(v ?? 0)} kcal`, "Calories"]}
           />
-          <Line type="monotone" dataKey="calories" stroke="#00c2ff" strokeWidth={2.5} dot={{ r: 2.5, fill: "#1e6bff", strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="calories" stroke="#9b8cff" strokeWidth={2.5} dot={{ r: 2.5, fill: "#6c5ce7", strokeWidth: 0 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -22,15 +22,15 @@ export function BodyScanChart({ scans, device }: { scans: BodyScan[]; device: Sc
       <div className="h-[140px] -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
-            <XAxis dataKey="label" tick={{ fill: "#4a6080", fontSize: 9 }} axisLine={{ stroke: "#1a2a44" }} tickLine={false} />
-            <YAxis tick={{ fill: "#4a6080", fontSize: 9 }} axisLine={false} tickLine={false} width={34} unit="%" />
+            <XAxis dataKey="label" tick={{ fill: "#86868f", fontSize: 9 }} axisLine={{ stroke: "#35353c" }} tickLine={false} />
+            <YAxis tick={{ fill: "#86868f", fontSize: 9 }} axisLine={false} tickLine={false} width={34} unit="%" />
             <Tooltip
-              contentStyle={{ background: "#0d1424", border: "1px solid #1a2a44", borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: "#8090a8" }}
+              contentStyle={{ background: "#1e1e23", border: "1px solid #35353c", borderRadius: 8, fontSize: 12 }}
+              labelStyle={{ color: "#b0b0b8" }}
               formatter={(v) => [`${Number(v ?? 0).toFixed(1)}%`, "Body Fat"]}
             />
-            <Line type="monotone" dataKey="bf" stroke="#00c2ff" strokeWidth={2.5} dot={{ r: 3, fill: "#1e6bff", strokeWidth: 0 }}>
-              <ErrorBar dataKey="err" width={4} stroke="rgba(0,194,255,0.5)" strokeWidth={1.5} />
+            <Line type="monotone" dataKey="bf" stroke="#9b8cff" strokeWidth={2.5} dot={{ r: 3, fill: "#6c5ce7", strokeWidth: 0 }}>
+              <ErrorBar dataKey="err" width={4} stroke="rgba(155,140,255,0.5)" strokeWidth={1.5} />
             </Line>
           </ComposedChart>
         </ResponsiveContainer>
