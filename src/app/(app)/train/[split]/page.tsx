@@ -113,6 +113,10 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
     });
   }
 
+  function reorderExercises(next: PlanExercise[]) {
+    savePlan({ ...plans, [split]: { ...dayPlan, [selectedDay]: next } });
+  }
+
   function addDay() {
     const nextLetter = DAY_LETTERS[Object.keys(dayPlan).length] ?? `${Object.keys(dayPlan).length + 1}`;
     savePlan({ ...plans, [split]: { ...dayPlan, [nextLetter]: [] } });
@@ -269,6 +273,7 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
             onAdd={addExercise}
             onRemove={removeExercise}
             onConfigure={configureExercise}
+            onReorder={reorderExercises}
           />
         </Card>
       ) : (

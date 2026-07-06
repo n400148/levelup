@@ -13,7 +13,7 @@ export async function POST() {
     const { text, modelUsed } = await callGemini(
       key,
       `Reply with exactly this string and nothing else: ${CHECK_STRING}`,
-      20,
+      40,
     );
     return NextResponse.json({ ok: text.includes(CHECK_STRING), modelUsed, raw: text });
   } catch (e) {

@@ -20,6 +20,7 @@ import {
 } from "@/lib/insights";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Input";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 
 const EMPTY_GOALS: UserGoals = { primaryGoal: null, targetBf: null, targetLeanMass: null, targetBodyweight: null, liftGoals: [] };
@@ -36,6 +37,7 @@ export default function InsightsPage() {
   const [goals, setGoals] = useState<UserGoals>(EMPTY_GOALS);
   const [loading, setLoading] = useState(true);
 
+  const [question, setQuestion] = useState("");
   const [brief, setBrief] = useState<string | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefError, setBriefError] = useState<string | null>(null);
@@ -110,7 +112,7 @@ export default function InsightsPage() {
       const res = await fetch("/api/ai/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary: buildSummary() }),
+        body: JSON.stringify({ summary: buildSummary(), question: question.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Request failed");
@@ -156,13 +158,20 @@ export default function InsightsPage() {
       </Card>
 
       <Card>
-        <CardTitle>AI Coach Brief</CardTitle>
+        <CardTitle>AI Coach</CardTitle>
         <p className="text-[11px] text-[var(--text-faint)] mb-3">
-          Synthesizes your weight, training, nutrition, latest scan, stack, and goals into a short evidence-based
-          brief.
+          Ask a specific question, or leave it blank for a general brief. Either way it&apos;s grounded in your
+          weight, training, nutrition, latest scan, stack, and goals — e.g. &ldquo;why have my lifts stalled the
+          last 2 weeks?&rdquo;
         </p>
+        <Textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ask a question (optional)…"
+          className="mb-3"
+        />
         <Button variant="primary" full onClick={handleGetBrief} disabled={briefLoading}>
-          {briefLoading ? "Thinking…" : "Get Coach Brief"}
+          {briefLoading ? "Thinking…" : question.trim() ? "Ask Coach" : "Get General Brief"}
         </Button>
         {briefError && <p className="text-[var(--danger)] text-[12px] mt-3">{briefError}</p>}
         {brief && (
