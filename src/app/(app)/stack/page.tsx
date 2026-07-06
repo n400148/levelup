@@ -84,6 +84,13 @@ export default function StackPage() {
     await load();
   }
 
+  async function handleEdit(id: number | undefined, patch: Partial<StackItem>) {
+    if (!id || !user) return;
+    const merged = { ...items.find((i) => i.id === id)!, ...patch };
+    await supabase.from(table).update(stackItemToRow(user.id, merged)).eq("id", id);
+    await load();
+  }
+
   const today = todayISO();
   const active = items.filter((i) => !i.endDate || i.endDate >= today);
   const past = items.filter((i) => i.endDate && i.endDate < today);
@@ -176,7 +183,13 @@ export default function StackPage() {
           <EmptyState icon="💉" text={`No active ${kind}s. Add one above to start tracking.`} />
         ) : (
           active.map((item) => (
-            <StackCard key={item.id} item={item} onEnd={() => handleEnd(item.id)} onDelete={() => handleDelete(item.id)} />
+            <StackCard
+              key={item.id}
+              item={item}
+              onEnd={() => handleEnd(item.id)}
+              onDelete={() => handleDelete(item.id)}
+              onSave={(patch) => handleEdit(item.id, patch)}
+            />
           ))
         )}
       </Card>
@@ -185,7 +198,13 @@ export default function StackPage() {
         <Card>
           <CardTitle>Past</CardTitle>
           {past.map((item) => (
-            <StackCard key={item.id} item={item} onEnd={() => handleEnd(item.id)} onDelete={() => handleDelete(item.id)} />
+            <StackCard
+              key={item.id}
+              item={item}
+              onEnd={() => handleEnd(item.id)}
+              onDelete={() => handleDelete(item.id)}
+              onSave={(patch) => handleEdit(item.id, patch)}
+            />
           ))}
         </Card>
       )}

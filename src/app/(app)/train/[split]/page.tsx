@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { sanitizeWorkoutPlans, workoutLogFromRow, workoutLogToRow } from "@/lib/mapping";
-import type { LoggedExercise, LoggedSet, Split, UserGoals, WorkoutLog, WorkoutPlans } from "@/lib/types";
+import type { LoggedExercise, LoggedSet, PlanExercise, Split, UserGoals, WorkoutLog, WorkoutPlans } from "@/lib/types";
 import { SPLITS } from "@/lib/types";
 import { SPLIT_MUSCLES, SPLIT_PRESETS } from "@/lib/train-data";
 import { getProgressionForExercise, PROGRESSION_DISCLAIMER } from "@/lib/progression";
@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { MuscleFigure, PulseFigure } from "@/components/train/MuscleFigure";
 import { PlanEditor } from "@/components/train/PlanEditor";
 import { SetLogger } from "@/components/train/SetLogger";
+import { WorkoutSession } from "@/components/train/WorkoutSession";
 
 const DAY_LETTERS = "ABCDEFGH";
 
@@ -40,6 +41,7 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
   const [extraName, setExtraName] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [sessionActive, setSessionActive] = useState(false);
 
   const validSplit = SPLITS.includes(split);
 
@@ -100,6 +102,17 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
     savePlan({ ...plans, [split]: { ...dayPlan, [selectedDay]: existing.filter((e) => e.name !== name) } });
   }
 
+  function configureExercise(name: string, patch: Partial<PlanExercise>) {
+    const existing = dayPlan[selectedDay] ?? [];
+    savePlan({
+      ...plans,
+      [split]: {
+        ...dayPlan,
+        [selectedDay]: existing.map((e) => (e.name === name ? { ...e, ...patch } : e)),
+      },
+    });
+  }
+
   function addDay() {
     const nextLetter = DAY_LETTERS[Object.keys(dayPlan).length] ?? `${Object.keys(dayPlan).length + 1}`;
     savePlan({ ...plans, [split]: { ...dayPlan, [nextLetter]: [] } });
@@ -153,6 +166,26 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
     setTimeout(() => setSavedFlash(false), 1800);
   }
 
+  async function handleSessionFinish(finished: LoggedExercise[]) {
+    if (!user) return;
+    const cleaned = finished
+      .map((e) => ({ ...e, sets: e.sets.filter((s) => s.weight > 0 || s.reps > 0) }))
+      .filter((e) => e.sets.length > 0);
+    const today = todayISO();
+    const existing = logs.find((l) => l.date === today && l.day === selectedDay);
+    const row: WorkoutLog = { date: today, split, day: selectedDay, exercises: cleaned };
+
+    if (existing?.id) {
+      await supabase.from("workout_logs").update(workoutLogToRow(user.id, row)).eq("id", existing.id);
+    } else {
+      await supabase.from("workout_logs").insert(workoutLogToRow(user.id, row));
+    }
+    await loadAll();
+    setSessionActive(false);
+    setLogDate(today);
+    setMode("log");
+  }
+
   if (!validSplit) {
     return (
       <Card>
@@ -180,41 +213,54 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
           </div>
         </div>
 
-        <SegmentedToggle
-          value={mode}
-          onChange={setMode}
-          options={[
-            { value: "log", label: "Log" },
-            { value: "plan", label: "Plan" },
-          ]}
-        />
+        {sessionActive ? (
+          <div className="text-[11px] text-[var(--text-mute)] font-medium">Day {selectedDay} · guided workout</div>
+        ) : (
+          <>
+            <SegmentedToggle
+              value={mode}
+              onChange={setMode}
+              options={[
+                { value: "log", label: "Log" },
+                { value: "plan", label: "Plan" },
+              ]}
+            />
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {dayKeys.map((d) => (
-            <button
-              key={d}
-              onClick={() => setSelectedDay(d)}
-              className={`tap-scale shrink-0 rounded-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide border ${
-                selectedDay === d
-                  ? "bg-[rgba(108,92,231,0.15)] border-[var(--accent)] text-[#a996ff]"
-                  : "bg-[var(--bg-inset)] border-[var(--border)] text-[var(--text-mute)]"
-              }`}
-            >
-              Day {d}
-            </button>
-          ))}
-          {mode === "plan" && (
-            <button
-              onClick={addDay}
-              className="tap-scale shrink-0 rounded-md px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide border border-dashed border-[var(--border)] text-[var(--text-mute)]"
-            >
-              + Day
-            </button>
-          )}
-        </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              {dayKeys.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setSelectedDay(d)}
+                  className={`tap-scale shrink-0 rounded-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide border ${
+                    selectedDay === d
+                      ? "bg-[rgba(108,92,231,0.15)] border-[var(--accent)] text-[#a996ff]"
+                      : "bg-[var(--bg-inset)] border-[var(--border)] text-[var(--text-mute)]"
+                  }`}
+                >
+                  Day {d}
+                </button>
+              ))}
+              {mode === "plan" && (
+                <button
+                  onClick={addDay}
+                  className="tap-scale shrink-0 rounded-md px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide border border-dashed border-[var(--border)] text-[var(--text-mute)]"
+                >
+                  + Day
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </Card>
 
-      {mode === "plan" ? (
+      {sessionActive ? (
+        <WorkoutSession
+          exercises={dayPlan[selectedDay] ?? []}
+          previousSetsFor={previousSetsFor}
+          onFinish={handleSessionFinish}
+          onCancel={() => setSessionActive(false)}
+        />
+      ) : mode === "plan" ? (
         <Card>
           <CardTitle>Day {selectedDay} Plan</CardTitle>
           <PlanEditor
@@ -222,12 +268,13 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
             presets={SPLIT_PRESETS[split]}
             onAdd={addExercise}
             onRemove={removeExercise}
+            onConfigure={configureExercise}
           />
         </Card>
       ) : (
         <>
           <Card>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-3">
               <CardTitle className="mb-0">Session</CardTitle>
               <Input
                 type="date"
@@ -237,6 +284,14 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
                 className="!w-auto text-[12px] py-1.5"
               />
             </div>
+            <Button
+              variant="primary"
+              full
+              disabled={(dayPlan[selectedDay] ?? []).length === 0}
+              onClick={() => setSessionActive(true)}
+            >
+              ▶ Start Workout
+            </Button>
           </Card>
 
           {sessionExercises.length === 0 && (

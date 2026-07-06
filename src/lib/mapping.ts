@@ -128,6 +128,7 @@ function sanitizeSet(raw: unknown): LoggedSet | null {
     weight: Number.isFinite(weight) ? weight : 0,
     reps: Number.isFinite(reps) ? reps : 0,
     effort: effort !== undefined && Number.isFinite(effort) ? effort : undefined,
+    warmup: s.warmup === true,
   };
 }
 
@@ -172,8 +173,17 @@ export function workoutLogToRow(userId: string, log: WorkoutLog): WorkoutLogInse
 function sanitizePlanExercise(raw: unknown): PlanExercise | null {
   if (typeof raw === "string" && raw.length > 0) return { name: raw };
   if (typeof raw === "object" && raw !== null) {
-    const name = (raw as Record<string, unknown>).name;
-    if (typeof name === "string" && name.length > 0) return { name };
+    const r = raw as Record<string, unknown>;
+    if (typeof r.name !== "string" || r.name.length === 0) return null;
+    const targetSets = Number(r.targetSets);
+    const warmupSets = Number(r.warmupSets);
+    const restSeconds = Number(r.restSeconds);
+    return {
+      name: r.name,
+      targetSets: Number.isFinite(targetSets) && targetSets > 0 ? targetSets : undefined,
+      warmupSets: Number.isFinite(warmupSets) && warmupSets > 0 ? warmupSets : undefined,
+      restSeconds: Number.isFinite(restSeconds) && restSeconds > 0 ? restSeconds : undefined,
+    };
   }
   return null;
 }

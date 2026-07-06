@@ -272,6 +272,7 @@ export interface LoggedSet {
   weight: number;
   reps: number;
   effort?: number;
+  warmup?: boolean;
 }
 
 export interface LoggedExercise {
@@ -289,6 +290,12 @@ export interface WorkoutLog {
 
 export interface PlanExercise {
   name: string;
+  /** Working sets planned for a guided session (default 3 if unset). */
+  targetSets?: number;
+  /** Warmup sets before the working sets (default 0 if unset). */
+  warmupSets?: number;
+  /** Rest between sets in a guided session, in seconds. Omit for no timer. */
+  restSeconds?: number;
 }
 
 export type DayPlan = Record<string, PlanExercise[]>; // dayLabel -> exercises

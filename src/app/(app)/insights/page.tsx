@@ -128,7 +128,11 @@ export default function InsightsPage() {
     try {
       const res = await fetch("/api/ai/test", { method: "POST" });
       const data = await res.json();
-      setTestResult(data.ok ? `Connected · ${data.modelUsed}` : `Failed: ${data.error ?? "unknown error"}`);
+      setTestResult(
+        data.ok
+          ? `Connected · ${data.modelUsed}`
+          : `Failed: ${data.error ?? (data.raw ? `model replied "${data.raw}" instead of the expected check string` : "unknown error")}`,
+      );
     } catch (e) {
       setTestResult(`Failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
