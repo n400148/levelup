@@ -4,3 +4,24 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Disable legacy asset optimization/post-processing left over from the old
+# static-HTML site. It rewrites <script> tags and breaks Next.js's ES module
+# script output (this is what caused the "Cannot use import statement
+# outside a module" error).
+[build.processing]
+  skip_processing = true
+
+[build.processing.css]
+  bundle = false
+  minify = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+[build.processing.html]
+  pretty_urls = false
+
+[build.processing.images]
+  compress = false
