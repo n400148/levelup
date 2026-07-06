@@ -1,10 +1,14 @@
 import type {
   BodyScan,
   Database,
+  LoggedExercise,
+  LoggedSet,
   NutritionEntry,
+  PlanExercise,
   StackItem,
   WeightEntry,
   WorkoutLog,
+  WorkoutPlans,
 } from "@/lib/types";
 
 // Every read/write of these 8 tables MUST go through the functions in this
@@ -110,13 +114,45 @@ export function stackItemToRow(userId: string, item: StackItem): PeptideInsert {
 }
 
 // ---------- workout_logs ----------
+// Sanitizers below are defensive: this app previously stored looser shapes
+// (plain-string exercise lists, string-typed set numbers). Rather than trust
+// whatever is in the JSONB blob, normalize/drop anything malformed here so a
+// stray legacy or partially-written row can never crash a page downstream.
+function sanitizeSet(raw: unknown): LoggedSet | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const s = raw as Record<string, unknown>;
+  const weight = Number(s.weight);
+  const reps = Number(s.reps);
+  const effort = s.effort !== undefined && s.effort !== "" ? Number(s.effort) : undefined;
+  return {
+    weight: Number.isFinite(weight) ? weight : 0,
+    reps: Number.isFinite(reps) ? reps : 0,
+    effort: effort !== undefined && Number.isFinite(effort) ? effort : undefined,
+  };
+}
+
+function sanitizeExercises(raw: unknown): LoggedExercise[] {
+  if (!Array.isArray(raw)) return [];
+  const result: LoggedExercise[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const name = (entry as Record<string, unknown>).name;
+    if (typeof name !== "string" || name.length === 0) continue;
+    const sets = Array.isArray((entry as Record<string, unknown>).sets)
+      ? ((entry as Record<string, unknown>).sets as unknown[]).map(sanitizeSet).filter((s): s is LoggedSet => s !== null)
+      : [];
+    result.push({ name, sets });
+  }
+  return result;
+}
+
 export function workoutLogFromRow(row: WorkoutLogRow): WorkoutLog {
   return {
     id: row.id,
     date: row.date,
     split: (row.split ?? "Full Body") as WorkoutLog["split"],
     day: row.day ?? "A",
-    exercises: (row.exercises as unknown as WorkoutLog["exercises"]) ?? [],
+    exercises: sanitizeExercises(row.exercises),
   };
 }
 export function workoutLogToRow(userId: string, log: WorkoutLog): WorkoutLogInsert {
@@ -127,4 +163,32 @@ export function workoutLogToRow(userId: string, log: WorkoutLog): WorkoutLogInse
     day: log.day,
     exercises: log.exercises as unknown as WorkoutLogInsert["exercises"],
   };
+}
+
+// ---------- workout_plans ----------
+// Older data stored each day's exercises as plain strings ("Bench Press")
+// instead of { name: "Bench Press" } objects. Migrate that shape on read
+// instead of crashing on it.
+function sanitizePlanExercise(raw: unknown): PlanExercise | null {
+  if (typeof raw === "string" && raw.length > 0) return { name: raw };
+  if (typeof raw === "object" && raw !== null) {
+    const name = (raw as Record<string, unknown>).name;
+    if (typeof name === "string" && name.length > 0) return { name };
+  }
+  return null;
+}
+
+export function sanitizeWorkoutPlans(raw: unknown): WorkoutPlans {
+  if (typeof raw !== "object" || raw === null) return {};
+  const plans: WorkoutPlans = {};
+  for (const [split, dayPlan] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof dayPlan !== "object" || dayPlan === null) continue;
+    const days: Record<string, PlanExercise[]> = {};
+    for (const [day, exercises] of Object.entries(dayPlan as Record<string, unknown>)) {
+      if (!Array.isArray(exercises)) continue;
+      days[day] = exercises.map(sanitizePlanExercise).filter((e): e is PlanExercise => e !== null);
+    }
+    (plans as Record<string, unknown>)[split] = days;
+  }
+  return plans;
 }

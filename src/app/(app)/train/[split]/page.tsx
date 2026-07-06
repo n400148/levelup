@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { workoutLogFromRow, workoutLogToRow } from "@/lib/mapping";
+import { sanitizeWorkoutPlans, workoutLogFromRow, workoutLogToRow } from "@/lib/mapping";
 import type { LoggedExercise, LoggedSet, Split, UserGoals, WorkoutLog, WorkoutPlans } from "@/lib/types";
 import { SPLITS } from "@/lib/types";
 import { SPLIT_MUSCLES, SPLIT_PRESETS } from "@/lib/train-data";
@@ -49,7 +49,7 @@ export default function SplitPage({ params }: { params: Promise<{ split: string 
       supabase.from("workout_logs").select("*").eq("split", split).order("date", { ascending: false }).limit(200),
       supabase.from("user_goals").select("goals").maybeSingle(),
     ]);
-    if (plansRes.data?.plans) setPlans(plansRes.data.plans as unknown as WorkoutPlans);
+    if (plansRes.data?.plans) setPlans(sanitizeWorkoutPlans(plansRes.data.plans));
     if (logsRes.data) setLogs(logsRes.data.map(workoutLogFromRow));
     const goalsData = goalsRes.data?.goals as unknown as UserGoals | undefined;
     setGoal(goalsData?.primaryGoal ?? null);

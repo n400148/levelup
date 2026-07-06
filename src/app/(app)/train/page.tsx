@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { SPLITS, type WorkoutPlans } from "@/lib/types";
+import { sanitizeWorkoutPlans } from "@/lib/mapping";
 import { SPLIT_MUSCLES } from "@/lib/train-data";
 import { MuscleFigure, PulseFigure } from "@/components/train/MuscleFigure";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -18,7 +19,7 @@ export default function TrainPage() {
       .select("plans")
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.plans) setPlans(data.plans as unknown as WorkoutPlans);
+        if (data?.plans) setPlans(sanitizeWorkoutPlans(data.plans));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

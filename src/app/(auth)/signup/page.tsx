@@ -15,9 +15,11 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!acknowledged) return;
     setError(null);
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -76,8 +78,23 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="At least 6 characters"
         />
+        <label className="flex items-start gap-2.5 mt-5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={acknowledged}
+            onChange={(e) => setAcknowledged(e.target.checked)}
+            required
+            className="mt-0.5 w-4 h-4 shrink-0 accent-[var(--accent)]"
+          />
+          <span className="text-[11.5px] text-[var(--text-mute)] leading-relaxed">
+            I understand LiftCipher is a personal tracking tool. Nothing in this app — including training,
+            nutrition, body-composition, or peptide/supplement information — is medical, dietary, or professional
+            advice. I&apos;ll consult a licensed physician or healthcare provider before making health decisions or
+            using any substance logged here.
+          </span>
+        </label>
         {error && <p className="text-[var(--danger)] text-[12px] mt-3">{error}</p>}
-        <Button type="submit" variant="primary" full className="mt-6" disabled={loading}>
+        <Button type="submit" variant="primary" full className="mt-5" disabled={loading || !acknowledged}>
           {loading ? "Creating Account…" : "Create Account"}
         </Button>
       </form>

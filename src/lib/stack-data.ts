@@ -5,11 +5,20 @@ export const PEPTIDE_PRESETS = [
   "CJC-1295",
   "Semaglutide",
   "Tirzepatide",
+  "Retatrutide",
+  "Tesamorelin",
+  "Cagrilintide",
   "PT-141",
   "Sermorelin",
   "Thymosin Alpha-1",
   "Epithalon",
   "GHK-Cu",
+  "AOD-9604",
+  "Hexarelin",
+  "MOTS-c",
+  "Selank",
+  "KPV",
+  "DSIP",
 ];
 
 export const SUPPLEMENT_PRESETS = [
