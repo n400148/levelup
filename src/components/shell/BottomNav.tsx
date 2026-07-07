@@ -34,12 +34,17 @@ export function BottomNav() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`tap-scale flex-1 flex flex-col items-center justify-center gap-1 py-2.5 pb-3.5 cursor-pointer ${
-              active ? "text-[var(--text)]" : "text-[var(--text-faint)]"
+            className={`tap-scale relative flex-1 flex flex-col items-center justify-center gap-1 py-2.5 pb-3.5 cursor-pointer ${
+              active ? "text-[var(--accent-2)]" : "text-[var(--text-faint)]"
             }`}
           >
-            <Icon className={`transition-transform ${active ? "scale-110" : ""}`} />
-            <span className="text-[9.5px] font-medium">{label}</span>
+            <span
+              className={`absolute top-0 h-[2px] w-5 rounded-full bg-[var(--accent-2)] transition-opacity ${
+                active ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            <Icon />
+            <span className="text-[9px] font-semibold uppercase tracking-wide">{label}</span>
           </Link>
         );
       })}

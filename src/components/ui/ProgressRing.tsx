@@ -35,11 +35,9 @@ export function ProgressRing({
         </defs>
       </svg>
       <div className="-mt-16 text-center">
-        <div className="font-display text-[20px] font-semibold text-[var(--text)]">{label}</div>
+        <div className="font-mono text-[19px] font-bold text-[var(--text)]">{label}</div>
       </div>
-      <div className="text-[11px] text-[var(--text-mute)] mt-2 font-medium text-center">
-        {sublabel}
-      </div>
+      <div className="eyebrow mt-2 text-center">{sublabel}</div>
     </div>
   );
 }

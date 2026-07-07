@@ -16,7 +16,7 @@ export function MacroBar({
     <div className="mb-2.5 last:mb-0">
       <div className="flex justify-between text-[11px] mb-1">
         <span className="text-[var(--text-mute)] uppercase font-bold tracking-wide">{label}</span>
-        <span className={over ? "text-[var(--danger)]" : "text-[var(--text-dim)]"}>
+        <span className={`font-mono ${over ? "text-[var(--danger)]" : "text-[var(--text-dim)]"}`}>
           {current}
           <span className="text-[var(--text-faint)]"> / {target}{unit}</span>
         </span>

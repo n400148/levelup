@@ -16,12 +16,12 @@ export function StatBlock({
   const toneClass =
     tone === "success" ? "text-[var(--success)]" : tone === "danger" ? "text-[var(--danger)]" : "text-[var(--text)]";
   return (
-    <div className="bg-[var(--bg-inset)] rounded-2xl px-3 py-3.5 text-center">
-      <div className={`font-display text-[21px] font-semibold leading-none ${toneClass}`}>
+    <div className="bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-2xl px-3 py-3.5 text-center">
+      <div className={`font-mono text-[20px] font-bold leading-none ${toneClass}`}>
         {value}
-        {unit && <span className="text-[12px] text-[var(--text-mute)] ml-0.5 font-normal">{unit}</span>}
+        {unit && <span className="text-[11px] text-[var(--text-mute)] ml-1 font-normal font-body">{unit}</span>}
       </div>
-      <div className="text-[10.5px] text-[var(--text-mute)] mt-1.5 font-medium">{label}</div>
+      <div className="eyebrow mt-2">{label}</div>
     </div>
   );
 }

@@ -17,14 +17,14 @@ export function WeightChart({ entries }: { entries: WeightEntry[] }) {
         <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
           <XAxis
             dataKey="label"
-            tick={{ fill: "#86868f", fontSize: 9 }}
+            tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }}
             axisLine={{ stroke: "#35353c" }}
             tickLine={false}
             interval="preserveStartEnd"
           />
           <YAxis
             domain={[min - pad, max + pad]}
-            tick={{ fill: "#86868f", fontSize: 9 }}
+            tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }}
             axisLine={false}
             tickLine={false}
             width={34}
@@ -33,8 +33,9 @@ export function WeightChart({ entries }: { entries: WeightEntry[] }) {
             contentStyle={{
               background: "#1e1e23",
               border: "1px solid #35353c",
-              borderRadius: 8,
+              borderRadius: 10,
               fontSize: 12,
+              fontFamily: "var(--font-mono)",
             }}
             labelStyle={{ color: "#b0b0b8" }}
             itemStyle={{ color: "#a996ff" }}

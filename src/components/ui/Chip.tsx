@@ -48,7 +48,7 @@ export function DeltaPill({ value, suffix = "" }: { value: number; suffix?: stri
   const tone = isFlat ? "bg-[rgba(134,134,143,0.15)] text-[var(--text-mute)]" : isUp ? "bg-[rgba(248,113,113,0.13)] text-[var(--danger)]" : "bg-[rgba(52,211,153,0.13)] text-[var(--success)]";
   const sign = isFlat ? "" : isUp ? "+" : "";
   return (
-    <span className={`inline-flex items-center text-[11.5px] font-semibold px-2.5 py-1 rounded-full ${tone}`}>
+    <span className={`inline-flex items-center font-mono text-[11.5px] font-bold px-2.5 py-1 rounded-full ${tone}`}>
       {sign}
       {value.toFixed(1)}
       {suffix}

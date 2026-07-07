@@ -131,8 +131,9 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
   return (
     <div className="animate-rise">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[11px] text-[var(--text-mute)] font-medium">
-          Exercise {exIndex + 1} of {exercises.length}
+        <div className="text-[10.5px] text-[var(--text-mute)] font-semibold uppercase tracking-wide">
+          Exercise <span className="font-mono">{exIndex + 1}</span> of{" "}
+          <span className="font-mono">{exercises.length}</span>
         </div>
         <button onClick={endEarly} className="tap-scale text-[11px] font-semibold text-[var(--danger)]">
           End Workout
@@ -148,14 +149,14 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
 
       <div className="card p-5">
         <div className="font-display text-[19px] font-semibold mb-1">{ex.name}</div>
-        <div className="text-[12.5px] text-[var(--text-mute)] mb-5">
+        <div className="font-mono text-[12.5px] text-[var(--text-mute)] mb-5">
           {isWarmup ? `Warmup set ${setNumberInPhase} of ${warmupCount}` : `Set ${setNumberInPhase} of ${workingCount}`}
         </div>
 
         {resting ? (
           <div className="text-center py-6">
-            <div className="text-[11px] text-[var(--text-mute)] font-medium uppercase tracking-wide mb-2">Rest</div>
-            <div className="font-display text-[48px] font-semibold text-gradient mb-5">
+            <div className="eyebrow mb-2">Rest</div>
+            <div className="font-mono text-[48px] font-bold text-gradient mb-5">
               {formatClock(restRemaining)}
             </div>
             <Button variant="secondary" full onClick={skipRest}>
@@ -164,7 +165,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
           </div>
         ) : (
           <>
-            <div className="text-[11px] text-[var(--text-faint)] mb-3">
+            <div className="font-mono text-[11px] text-[var(--text-faint)] mb-3">
               {previousForThisSet ? `Previous: ${previousForThisSet.weight} × ${previousForThisSet.reps}` : "No previous data"}
             </div>
             <div className="grid grid-cols-2 gap-3">

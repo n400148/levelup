@@ -106,9 +106,7 @@ export default function NutritionPage() {
           </form>
 
           <div>
-            <div className="text-[9px] tracking-widest uppercase text-[var(--accent-2)] font-bold mb-1">
-              Recommended
-            </div>
+            <div className="eyebrow mb-1">Recommended</div>
             {!loading && !bodyweight && (
               <p className="text-[11px] text-[var(--text-faint)] leading-relaxed">
                 Log a weight entry on the Weight tab to see your targets here.
@@ -121,25 +119,25 @@ export default function NutritionPage() {
                     ? `Scan-based · ${macros.leanMassLb} lb lean mass`
                     : "General estimate based only on your entered weight — log a body scan for targets based on your real lean mass."}
                 </p>
-                <div className="space-y-1.5 text-[13px]">
+                <div className="space-y-1.5 text-[13px] font-mono">
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-mute)]">Calories</span>
-                    <span className="font-display font-bold text-[#a996ff]">{macros.calories}</span>
+                    <span className="text-[var(--text-mute)] font-body">Calories</span>
+                    <span className="font-bold text-[#a996ff]">{macros.calories}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-mute)]">Protein</span>
+                    <span className="text-[var(--text-mute)] font-body">Protein</span>
                     <span className="font-bold">{macros.proteinG}g</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-mute)]">Carbs</span>
+                    <span className="text-[var(--text-mute)] font-body">Carbs</span>
                     <span className="font-bold">{macros.carbsG}g</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-mute)]">Fats</span>
+                    <span className="text-[var(--text-mute)] font-body">Fats</span>
                     <span className="font-bold">{macros.fatG}g</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[var(--text-mute)]">Water</span>
+                    <span className="text-[var(--text-mute)] font-body">Water</span>
                     <span className="font-bold">{macros.waterOz}oz</span>
                   </div>
                 </div>
@@ -179,8 +177,8 @@ export default function NutritionPage() {
           <CardTitle>History</CardTitle>
           {history.map((e) => (
             <div key={e.date} className="flex items-center justify-between bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2 mb-2 last:mb-0">
-              <span className="text-[11px] text-[var(--text-mute)] uppercase">{formatShortDate(e.date)}</span>
-              <span className="text-[12.5px] text-[var(--text-dim)]">
+              <span className="text-[11px] text-[var(--text-mute)] uppercase font-semibold">{formatShortDate(e.date)}</span>
+              <span className="font-mono text-[12.5px] text-[var(--text-dim)]">
                 {e.calories ?? "–"} kcal · P{e.protein ?? "–"} C{e.carbs ?? "–"} F{e.fats ?? "–"}
               </span>
             </div>

@@ -122,7 +122,7 @@ export function PlanEditor({
                   </div>
                 </div>
                 {!open && (ex.targetSets || ex.warmupSets || ex.restSeconds) && (
-                  <div className="pl-11 pr-3 pb-2.5 -mt-1 text-[11px] text-[var(--text-faint)]">
+                  <div className="pl-11 pr-3 pb-2.5 -mt-1 font-mono text-[11px] text-[var(--text-faint)]">
                     {ex.warmupSets ? `${ex.warmupSets} warmup · ` : ""}
                     {ex.targetSets ?? 3} working sets
                     {ex.restSeconds ? ` · ${ex.restSeconds}s rest` : ""}

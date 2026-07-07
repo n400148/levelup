@@ -12,7 +12,8 @@ export function Label({ children }: { children: React.ReactNode }) {
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={`${base} ${props.className ?? ""}`} />;
+  const numeric = props.type === "number" || props.type === "date" ? "font-mono" : "";
+  return <input {...props} className={`${base} ${numeric} ${props.className ?? ""}`} />;
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {

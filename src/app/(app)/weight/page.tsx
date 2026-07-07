@@ -165,11 +165,11 @@ export default function WeightPage() {
                   className="flex items-center justify-between bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2.5 mb-2 last:mb-0"
                 >
                   <div>
-                    <div className="text-[10px] text-[var(--text-mute)] uppercase tracking-wide">
+                    <div className="text-[10px] text-[var(--text-mute)] uppercase tracking-wide font-semibold">
                       {formatShortDate(entry.date)}
                     </div>
-                    <div className="font-display text-[16px] font-bold">
-                      {entry.weight.toFixed(1)} <span className="text-[11px] text-[var(--text-mute)]">lb</span>
+                    <div className="font-mono text-[16px] font-bold">
+                      {entry.weight.toFixed(1)} <span className="text-[11px] text-[var(--text-mute)] font-body">lb</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

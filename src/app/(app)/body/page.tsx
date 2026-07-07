@@ -132,7 +132,7 @@ export default function BodyPage() {
           <Label>Height (in, optional)</Label>
           <Input type="number" inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="70" />
           {bf && (
-            <p className="text-[11px] text-[var(--text-faint)] mt-2">
+            <p className="font-mono text-[11px] text-[var(--text-faint)] mt-2">
               True-value range: {formatErrorRange(parseFloat(bf), device)}
             </p>
           )}
@@ -188,19 +188,19 @@ export default function BodyPage() {
           {history.map((s) => (
             <div key={s.id} className="bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2.5 mb-2 last:mb-0">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-[var(--text-mute)] uppercase">{formatShortDate(s.date)}</span>
+                <span className="text-[11px] text-[var(--text-mute)] uppercase font-semibold">{formatShortDate(s.date)}</span>
                 <button onClick={() => handleDelete(s.id)} className="tap-scale text-[var(--danger)] text-[10px] font-bold uppercase">
                   Delete
                 </button>
               </div>
               <div className="flex items-center justify-between mt-1">
-                <span className="font-display text-[15px] font-bold">
+                <span className="font-mono text-[15px] font-bold">
                   {s.bf != null ? `${s.bf.toFixed(1)}%` : "–"}{" "}
                   <span className="text-[11px] text-[var(--text-mute)] font-normal">
                     {s.weight ? `· ${s.weight.toFixed(1)} lb` : ""}
                   </span>
                 </span>
-                <span className="text-[10px] text-[var(--text-faint)]">
+                <span className="font-mono text-[10px] text-[var(--text-faint)]">
                   {s.deviceLabel || SCAN_DEVICES.find((d) => d.id === s.device)?.shortLabel}
                   {s.bf != null ? ` · ${formatErrorRange(s.bf, s.device)}` : ""}
                 </span>

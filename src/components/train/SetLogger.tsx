@@ -53,8 +53,8 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
           const prev = previousSets?.[i];
           return (
             <div key={i} className="grid grid-cols-[20px_1fr_1fr_1fr_44px] gap-1.5 items-center mb-1.5">
-              <span className="font-display text-[10px] text-[var(--text-mute)] text-center">{i + 1}</span>
-              <span className="text-[12px] text-[var(--text-faint)]">
+              <span className="font-mono text-[10px] text-[var(--text-mute)] text-center">{i + 1}</span>
+              <span className="font-mono text-[12px] text-[var(--text-faint)]">
                 {prev ? `${prev.weight}×${prev.reps}` : "—"}
               </span>
               <input
@@ -63,7 +63,7 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
                 value={set.weight || ""}
                 onChange={(e) => updateSet(i, "weight", parseFloat(e.target.value) || 0)}
                 placeholder={prev ? String(prev.weight) : "0"}
-                className="w-full bg-[var(--bg-inset-2)] border border-[var(--border)] rounded-md px-1.5 py-2 text-[14px] font-bold text-center text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                className="w-full bg-[var(--bg-inset-2)] border border-[var(--border)] rounded-md px-1.5 py-2 font-mono text-[14px] font-bold text-center text-[var(--text)] outline-none focus:border-[var(--accent)]"
               />
               <input
                 type="number"
@@ -71,7 +71,7 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
                 value={set.reps || ""}
                 onChange={(e) => updateSet(i, "reps", parseInt(e.target.value, 10) || 0)}
                 placeholder={prev ? String(prev.reps) : "0"}
-                className="w-full bg-[var(--bg-inset-2)] border border-[var(--border)] rounded-md px-1.5 py-2 text-[14px] font-bold text-center text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                className="w-full bg-[var(--bg-inset-2)] border border-[var(--border)] rounded-md px-1.5 py-2 font-mono text-[14px] font-bold text-center text-[var(--text)] outline-none focus:border-[var(--accent)]"
               />
               <div className="flex items-center gap-1">
                 <input
@@ -82,7 +82,7 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
                   value={set.effort ?? ""}
                   onChange={(e) => updateSet(i, "effort", e.target.value ? parseInt(e.target.value, 10) : undefined)}
                   placeholder="-"
-                  className="w-full bg-transparent border border-[var(--border-soft)] rounded-md px-1 py-2 text-[11px] text-center text-[var(--text-dim)] outline-none"
+                  className="w-full bg-transparent border border-[var(--border-soft)] rounded-md px-1 py-2 font-mono text-[11px] text-center text-[var(--text-dim)] outline-none"
                 />
                 <button onClick={() => removeSet(i)} className="tap-scale text-[var(--text-faint)] text-[13px]">
                   ×

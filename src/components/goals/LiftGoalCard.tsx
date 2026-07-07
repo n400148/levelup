@@ -22,7 +22,7 @@ export function LiftGoalCard({
           Delete
         </button>
       </div>
-      <div className="flex justify-between text-[11px] text-[var(--text-mute)] mb-1.5">
+      <div className="flex justify-between font-mono text-[11px] text-[var(--text-mute)] mb-1.5">
         <span>
           {goal.currentMax} → {goal.targetMax} {goal.unit}
         </span>
@@ -37,7 +37,7 @@ export function LiftGoalCard({
         />
       </div>
       {bestWeight != null && (
-        <div className="text-[10.5px] text-[var(--text-faint)] mt-1.5">
+        <div className="font-mono text-[10.5px] text-[var(--text-faint)] mt-1.5">
           Best logged: {bestWeight} {goal.unit}
           {goal.deadline ? ` · Target date ${goal.deadline}` : ""}
         </div>
