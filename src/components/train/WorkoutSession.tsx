@@ -142,7 +142,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
 
       <div className="h-1 rounded-full bg-[var(--bg-inset-2)] mb-4 overflow-hidden">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#6c5ce7] to-[#9b8cff] transition-all"
+          className="h-full rounded-full bg-[var(--accent)] transition-all"
           style={{ width: `${((exIndex + (setIndex + 1) / totalCount) / exercises.length) * 100}%` }}
         />
       </div>

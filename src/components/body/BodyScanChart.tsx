@@ -29,8 +29,8 @@ export function BodyScanChart({ scans, device }: { scans: BodyScan[]; device: Sc
               labelStyle={{ color: "#b0b0b8" }}
               formatter={(v) => [`${Number(v ?? 0).toFixed(1)}%`, "Body Fat"]}
             />
-            <Line type="monotone" dataKey="bf" stroke="#9b8cff" strokeWidth={2.5} dot={{ r: 3, fill: "#6c5ce7", strokeWidth: 0 }}>
-              <ErrorBar dataKey="err" width={4} stroke="rgba(155,140,255,0.5)" strokeWidth={1.5} />
+            <Line type="monotone" dataKey="bf" stroke="#8a7ee8" strokeWidth={2.5} dot={{ r: 3, fill: "#5b4fcc", strokeWidth: 0 }}>
+              <ErrorBar dataKey="err" width={4} stroke="rgba(138,126,232,0.5)" strokeWidth={1.5} />
             </Line>
           </ComposedChart>
         </ResponsiveContainer>

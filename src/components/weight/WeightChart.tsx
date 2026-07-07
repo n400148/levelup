@@ -44,10 +44,10 @@ export function WeightChart({ entries }: { entries: WeightEntry[] }) {
           <Line
             type="monotone"
             dataKey="weight"
-            stroke="#6c5ce7"
+            stroke="#5b4fcc"
             strokeWidth={2.5}
-            dot={{ r: 2.5, fill: "#9b8cff", strokeWidth: 0 }}
-            activeDot={{ r: 4.5, fill: "#9b8cff" }}
+            dot={{ r: 2.5, fill: "#8a7ee8", strokeWidth: 0 }}
+            activeDot={{ r: 4.5, fill: "#8a7ee8" }}
           />
         </LineChart>
       </ResponsiveContainer>

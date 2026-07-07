@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { WarningIcon } from "@/components/ui/EmptyStateIcons";
 import { SplitPageClient } from "@/components/train/SplitPageClient";
 import type { Split } from "@/lib/types";
 import { SPLITS } from "@/lib/types";
@@ -15,7 +16,7 @@ export default async function SplitPage({ params }: { params: Promise<{ split: s
   if (!SPLITS.includes(split)) {
     return (
       <Card>
-        <EmptyState icon="⚠" text="Unknown split." />
+        <EmptyState icon={<WarningIcon />} text="Unknown split." />
       </Card>
     );
   }

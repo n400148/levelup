@@ -6,6 +6,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ClipboardIcon } from "@/components/ui/EmptyStateIcons";
 
 export function PlanEditor({
   exercises,
@@ -74,7 +75,7 @@ export function PlanEditor({
   return (
     <div>
       {order.length === 0 ? (
-        <EmptyState icon="📋" text="No exercises planned for this day yet. Add some below." />
+        <EmptyState icon={<ClipboardIcon />} text="No exercises planned for this day yet. Add some below." />
       ) : (
         <div className="mb-3">
           {order.map((ex) => {

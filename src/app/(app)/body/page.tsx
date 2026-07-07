@@ -12,6 +12,7 @@ import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ChartIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -151,7 +152,7 @@ export default function BodyPage() {
 
       {!loading && scans.length === 0 && (
         <Card>
-          <EmptyState icon="📊" text="No body scans logged yet. Add your first scan above to start tracking body composition." />
+          <EmptyState icon={<ChartIcon />} text="No body scans logged yet. Add your first scan above to start tracking body composition." />
         </Card>
       )}
 

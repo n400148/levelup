@@ -11,6 +11,7 @@ import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { TargetIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LiftGoalCard } from "@/components/goals/LiftGoalCard";
 
@@ -191,7 +192,7 @@ export default function GoalsPage() {
         {loading ? (
           <Skeleton className="h-14 w-full" />
         ) : goals.liftGoals.length === 0 ? (
-          <EmptyState icon="🎯" text="No lift goals yet. Add one above — progress auto-tracks from your Train logs." />
+          <EmptyState icon={<TargetIcon />} text="No lift goals yet. Add one above — progress auto-tracks from your Train logs." />
         ) : (
           goals.liftGoals.map((g) => (
             <LiftGoalCard

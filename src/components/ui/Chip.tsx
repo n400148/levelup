@@ -32,8 +32,8 @@ export function Tag({
   const toneClasses: Record<string, string> = {
     blue: "bg-[rgba(108,92,231,0.12)] text-[#a996ff]",
     teal: "bg-[rgba(155,140,255,0.12)] text-[var(--accent-2)]",
-    red: "bg-[rgba(248,113,113,0.12)] text-[var(--danger)]",
-    green: "bg-[rgba(52,211,153,0.12)] text-[var(--success)]",
+    red: "bg-[rgba(194,86,78,0.15)] text-[var(--danger)]",
+    green: "bg-[rgba(76,156,119,0.15)] text-[var(--success)]",
   };
   return (
     <span className={`inline-block text-[10.5px] px-2.5 py-1 rounded-full font-semibold ${toneClasses[tone]}`}>
@@ -45,7 +45,7 @@ export function Tag({
 export function DeltaPill({ value, suffix = "" }: { value: number; suffix?: string }) {
   const isUp = value > 0;
   const isFlat = value === 0;
-  const tone = isFlat ? "bg-[rgba(134,134,143,0.15)] text-[var(--text-mute)]" : isUp ? "bg-[rgba(248,113,113,0.13)] text-[var(--danger)]" : "bg-[rgba(52,211,153,0.13)] text-[var(--success)]";
+  const tone = isFlat ? "bg-[rgba(134,134,143,0.15)] text-[var(--text-mute)]" : isUp ? "bg-[rgba(194,86,78,0.15)] text-[var(--danger)]" : "bg-[rgba(76,156,119,0.15)] text-[var(--success)]";
   const sign = isFlat ? "" : isUp ? "+" : "";
   return (
     <span className={`inline-flex items-center font-mono text-[11.5px] font-bold px-2.5 py-1 rounded-full ${tone}`}>

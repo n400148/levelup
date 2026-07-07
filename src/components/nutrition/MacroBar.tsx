@@ -23,7 +23,7 @@ export function MacroBar({
       </div>
       <div className="h-[6px] rounded-full bg-[var(--bg-inset-2)] overflow-hidden">
         <div
-          className={`h-full rounded-full ${over ? "bg-[var(--danger)]" : "bg-gradient-to-r from-[#6c5ce7] to-[#9b8cff]"}`}
+          className={`h-full rounded-full ${over ? "bg-[var(--danger)]" : "bg-[var(--accent)]"}`}
           style={{ width: `${pct}%` }}
         />
       </div>

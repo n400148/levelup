@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { BarbellIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { MuscleFigure, PulseFigure } from "@/components/train/MuscleFigure";
 import { PlanEditor } from "@/components/train/PlanEditor";
@@ -292,7 +293,7 @@ export function SplitPageClient({ split }: { split: Split }) {
 
           {sessionExercises.length === 0 && (
             <Card>
-              <EmptyState icon="🏋" text="No exercises for this day yet. Switch to Plan to add some." />
+              <EmptyState icon={<BarbellIcon />} text="No exercises for this day yet. Switch to Plan to add some." />
             </Card>
           )}
 

@@ -11,11 +11,11 @@
   --text-dim: #b0b0b8;
   --text-mute: #86868f;
   --text-faint: #6f6f7a;
-  --accent: #6c5ce7;
-  --accent-2: #9b8cff;
-  --accent-grad: linear-gradient(135deg, #6c5ce7, #8b7cf6);
-  --success: #34d399;
-  --danger: #f87171;
+  --accent: #5b4fcc;
+  --accent-2: #8a7ee8;
+  --accent-grad: linear-gradient(135deg, #5b4fcc, #8a7ee8);
+  --success: #4c9c77;
+  --danger: #c2564e;
 }
 
 @theme inline {
@@ -44,8 +44,6 @@ html, body {
 
 body {
   background: var(--bg);
-  background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(108, 92, 231, 0.11), transparent 60%);
-  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body), sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -95,7 +93,7 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(155, 140, 255, 0.4), transparent 65%);
+  background: linear-gradient(90deg, rgba(138, 126, 232, 0.35), transparent 65%);
 }
 
 .tap-scale {

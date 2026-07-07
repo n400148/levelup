@@ -22,7 +22,7 @@ export function CalorieChart({ entries }: { entries: NutritionEntry[] }) {
             labelStyle={{ color: "#b0b0b8" }}
             formatter={(v) => [`${Number(v ?? 0)} kcal`, "Calories"]}
           />
-          <Line type="monotone" dataKey="calories" stroke="#9b8cff" strokeWidth={2.5} dot={{ r: 2.5, fill: "#6c5ce7", strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="calories" stroke="#8a7ee8" strokeWidth={2.5} dot={{ r: 2.5, fill: "#5b4fcc", strokeWidth: 0 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

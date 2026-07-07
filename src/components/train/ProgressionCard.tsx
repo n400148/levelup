@@ -14,8 +14,8 @@ export function ProgressionCard({ result }: { result: ProgressionResult }) {
     <div
       className={`rounded-lg px-3 py-2.5 mb-2 border ${
         isAdd
-          ? "bg-[rgba(52,211,153,0.08)] border-[rgba(52,211,153,0.3)]"
-          : "bg-[rgba(108,92,231,0.08)] border-[rgba(108,92,231,0.25)]"
+          ? "bg-[rgba(76,156,119,0.1)] border-[rgba(76,156,119,0.3)]"
+          : "bg-[rgba(91,79,204,0.1)] border-[rgba(91,79,204,0.3)]"
       }`}
     >
       <div

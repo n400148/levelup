@@ -11,6 +11,7 @@ import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ScaleIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { DeltaPill } from "@/components/ui/Chip";
 import { Disclaimer } from "@/components/ui/Disclaimer";
@@ -125,7 +126,7 @@ export default function WeightPage() {
 
       {!loading && sorted.length === 0 && (
         <Card>
-          <EmptyState icon="⚖" text="No weigh-ins yet. Log today's weight above to start your trend line." />
+          <EmptyState icon={<ScaleIcon />} text="No weigh-ins yet. Log today's weight above to start your trend line." />
         </Card>
       )}
 

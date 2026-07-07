@@ -11,8 +11,8 @@ function svgFull() {
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e6bff"/>
-      <stop offset="100%" stop-color="#00c2ff"/>
+      <stop offset="0%" stop-color="#5b4fcc"/>
+      <stop offset="100%" stop-color="#8a7ee8"/>
     </linearGradient>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#050810"/>
@@ -33,8 +33,8 @@ function svgMaskable() {
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e6bff"/>
-      <stop offset="100%" stop-color="#00c2ff"/>
+      <stop offset="0%" stop-color="#5b4fcc"/>
+      <stop offset="100%" stop-color="#8a7ee8"/>
     </linearGradient>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#050810"/>
