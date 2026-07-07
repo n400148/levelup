@@ -11,6 +11,7 @@ import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { DeltaPill } from "@/components/ui/Chip";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { WeightChart } from "@/components/weight/WeightChart";
@@ -114,6 +115,13 @@ export default function WeightPage() {
         </form>
         {error && <p className="text-[var(--danger)] text-[12px] mt-2">{error}</p>}
       </Card>
+
+      {loading && (
+        <Card>
+          <Skeleton className="h-4 w-1/2 mb-3" />
+          <Skeleton className="h-20 w-full" />
+        </Card>
+      )}
 
       {!loading && sorted.length === 0 && (
         <Card>

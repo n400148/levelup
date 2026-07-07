@@ -25,9 +25,14 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
+  // getClaims() verifies the JWT locally against the project's cached JWKS
+  // instead of round-tripping to the Auth server on every navigation like
+  // getUser() does — same security guarantee (signature + expiry checked),
+  // far less latency added to every page load.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data,
+  } = await supabase.auth.getClaims();
+  const user = data?.claims ?? null;
 
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.some((p) => path.startsWith(p));

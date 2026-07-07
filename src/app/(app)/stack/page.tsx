@@ -13,6 +13,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { StackCard } from "@/components/stack/StackCard";
 
 export default function StackPage() {
@@ -179,7 +180,12 @@ export default function StackPage() {
 
       <Card>
         <CardTitle>Active</CardTitle>
-        {!loading && active.length === 0 ? (
+        {loading ? (
+          <>
+            <Skeleton className="h-14 w-full mb-2" />
+            <Skeleton className="h-14 w-full" />
+          </>
+        ) : active.length === 0 ? (
           <EmptyState icon="💉" text={`No active ${kind}s. Add one above to start tracking.`} />
         ) : (
           active.map((item) => (

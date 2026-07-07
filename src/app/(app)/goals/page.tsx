@@ -11,6 +11,7 @@ import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { LiftGoalCard } from "@/components/goals/LiftGoalCard";
 
 const PRIMARY_GOALS: PrimaryGoal[] = ["Fat Loss", "Muscle Gain", "Recomp", "Strength", "Endurance", "Maintain"];
@@ -187,7 +188,9 @@ export default function GoalsPage() {
 
       <Card>
         <CardTitle>Lift Goals</CardTitle>
-        {!loading && goals.liftGoals.length === 0 ? (
+        {loading ? (
+          <Skeleton className="h-14 w-full" />
+        ) : goals.liftGoals.length === 0 ? (
           <EmptyState icon="🎯" text="No lift goals yet. Add one above — progress auto-tracks from your Train logs." />
         ) : (
           goals.liftGoals.map((g) => (

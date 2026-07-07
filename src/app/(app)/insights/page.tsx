@@ -22,6 +22,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { Disclaimer } from "@/components/ui/Disclaimer";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const EMPTY_GOALS: UserGoals = { primaryGoal: null, targetBf: null, targetLeanMass: null, targetBodyweight: null, liftGoals: [] };
 
@@ -146,6 +147,13 @@ export default function InsightsPage() {
     <div className="animate-rise">
       <Card>
         <CardTitle>Auto Insights</CardTitle>
+        {loading && (
+          <>
+            <Skeleton className="h-4 w-1/2 mb-3" />
+            <Skeleton className="h-4 w-2/3 mb-3" />
+            <Skeleton className="h-4 w-1/3" />
+          </>
+        )}
         {!loading &&
           rows.map((row) => (
             <div key={row.label} className="mb-3 last:mb-0">

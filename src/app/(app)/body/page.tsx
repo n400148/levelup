@@ -12,6 +12,7 @@ import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { BodyScanChart } from "@/components/body/BodyScanChart";
@@ -140,6 +141,13 @@ export default function BodyPage() {
           </Button>
         </form>
       </Card>
+
+      {loading && (
+        <Card>
+          <Skeleton className="h-4 w-1/2 mb-3" />
+          <Skeleton className="h-20 w-full" />
+        </Card>
+      )}
 
       {!loading && scans.length === 0 && (
         <Card>

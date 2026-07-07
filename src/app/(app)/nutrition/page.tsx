@@ -11,6 +11,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { MacroBar } from "@/components/nutrition/MacroBar";
 import { CalorieChart } from "@/components/nutrition/CalorieChart";
 
@@ -147,6 +148,13 @@ export default function NutritionPage() {
           </div>
         </div>
       </Card>
+
+      {loading && (
+        <Card>
+          <Skeleton className="h-4 w-1/2 mb-3" />
+          <Skeleton className="h-20 w-full" />
+        </Card>
+      )}
 
       {macros && (
         <Card>

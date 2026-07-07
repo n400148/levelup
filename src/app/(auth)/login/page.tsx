@@ -1,19 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const confirmationFailed = searchParams.get("error") === "confirmation_failed";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +38,12 @@ export default function LoginPage() {
         <div className="font-display text-[28px] font-semibold text-gradient">LiftCipher</div>
         <div className="text-[13px] text-[var(--text-mute)] mt-1.5">Decode your progress</div>
       </div>
+      {confirmationFailed && (
+        <p className="text-[var(--danger)] text-[12px] text-center leading-relaxed mb-5 bg-[rgba(248,113,113,0.08)] border border-[rgba(248,113,113,0.2)] rounded-lg px-3 py-2.5">
+          That confirmation link didn&apos;t work or has expired. Try signing up again, or sign in below if you&apos;ve
+          already confirmed.
+        </p>
+      )}
       <form onSubmit={handleSubmit}>
         <Label>Email</Label>
         <Input
@@ -66,5 +75,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
