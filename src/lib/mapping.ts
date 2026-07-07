@@ -1,4 +1,5 @@
 import type {
+  AdvancedScanData,
   BodyScan,
   Database,
   LoggedExercise,
@@ -60,6 +61,51 @@ export function nutritionToRow(
 }
 
 // ---------- body_scans ----------
+const ADVANCED_SCAN_KEYS: (keyof AdvancedScanData)[] = [
+  "skeletalMuscleMass",
+  "proteinMass",
+  "mineralMass",
+  "totalBodyWater",
+  "bodyFatMass",
+  "subcutaneousFatMass",
+  "visceralFatMass",
+  "visceralFatLevel",
+  "visceralFatArea",
+  "icf",
+  "ecf",
+  "bmr",
+  "tee",
+  "bioAge",
+  "bwiScore",
+  "waistToHipRatio",
+  "abdominalCircumference",
+  "leftArmLean",
+  "leftArmFat",
+  "rightArmLean",
+  "rightArmFat",
+  "torsoLean",
+  "torsoFat",
+  "leftLegLean",
+  "leftLegFat",
+  "rightLegLean",
+  "rightLegFat",
+];
+
+function sanitizeAdvancedScanData(raw: unknown): AdvancedScanData | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const src = raw as Record<string, unknown>;
+  const result: AdvancedScanData = {};
+  let hasAny = false;
+  for (const key of ADVANCED_SCAN_KEYS) {
+    const value = Number(src[key]);
+    if (src[key] !== undefined && src[key] !== null && Number.isFinite(value)) {
+      result[key] = value;
+      hasAny = true;
+    }
+  }
+  return hasAny ? result : null;
+}
+
 export function bodyScanFromRow(row: BodyScanRow): BodyScan {
   return {
     id: row.id,
@@ -71,6 +117,7 @@ export function bodyScanFromRow(row: BodyScanRow): BodyScan {
     goalBf: row.goal_bf,
     device: row.device as BodyScan["device"],
     deviceLabel: row.device_label,
+    advanced: sanitizeAdvancedScanData(row.advanced),
   };
 }
 export function bodyScanToRow(userId: string, scan: BodyScan): BodyScanInsert {
@@ -84,6 +131,7 @@ export function bodyScanToRow(userId: string, scan: BodyScan): BodyScanInsert {
     goal_bf: scan.goalBf,
     device: scan.device,
     device_label: scan.deviceLabel,
+    advanced: scan.advanced as never,
   };
 }
 

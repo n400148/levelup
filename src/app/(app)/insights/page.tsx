@@ -24,7 +24,15 @@ import { Textarea } from "@/components/ui/Input";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-const EMPTY_GOALS: UserGoals = { primaryGoal: null, targetBf: null, targetLeanMass: null, targetBodyweight: null, liftGoals: [] };
+const EMPTY_GOALS: UserGoals = {
+  primaryGoal: null,
+  targetBf: null,
+  targetLeanMass: null,
+  targetBodyweight: null,
+  liftGoals: [],
+  sex: null,
+  birthYear: null,
+};
 
 export default function InsightsPage() {
   const supabase = createClient();

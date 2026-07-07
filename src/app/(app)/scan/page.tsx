@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { bodyScanFromRow, bodyScanToRow } from "@/lib/mapping";
-import type { BodyScan, ScanDevice, UserGoals } from "@/lib/types";
+import type { AdvancedScanData, BodyScan, ScanDevice, Sex, UserGoals } from "@/lib/types";
 import { SCAN_DEVICES, formatErrorRange } from "@/lib/devices";
 import { todayISO, formatShortDate } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -17,6 +17,11 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { BodyScanChart } from "@/components/body/BodyScanChart";
+import { AdvancedScanFields } from "@/components/body/AdvancedScanFields";
+import { SegmentalDiagram } from "@/components/body/SegmentalDiagram";
+import { AdvancedScanSummary } from "@/components/body/AdvancedScanSummary";
+
+const EMPTY_ADVANCED: AdvancedScanData = {};
 
 export default function ScanPage() {
   const { user } = useAuth();
@@ -24,6 +29,8 @@ export default function ScanPage() {
 
   const [scans, setScans] = useState<BodyScan[]>([]);
   const [targetBf, setTargetBf] = useState<number | null>(null);
+  const [sex, setSex] = useState<Sex | null>(null);
+  const [birthYear, setBirthYear] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +40,10 @@ export default function ScanPage() {
   const [weight, setWeight] = useState("");
   const [bf, setBf] = useState("");
   const [height, setHeight] = useState("");
+  const [advanced, setAdvanced] = useState<AdvancedScanData>(EMPTY_ADVANCED);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showSegmental, setShowSegmental] = useState(false);
+  const [showLatestAdvanced, setShowLatestAdvanced] = useState(false);
 
   async function loadAll() {
     const [scansRes, goalsRes] = await Promise.all([
@@ -42,6 +53,8 @@ export default function ScanPage() {
     if (scansRes.data) setScans(scansRes.data.map(bodyScanFromRow));
     const goalsData = goalsRes.data?.goals as unknown as UserGoals | undefined;
     setTargetBf(goalsData?.targetBf ?? null);
+    setSex(goalsData?.sex ?? null);
+    setBirthYear(goalsData?.birthYear ?? null);
     setLoading(false);
   }
 
@@ -50,12 +63,17 @@ export default function ScanPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function handleAdvancedChange(patch: Partial<AdvancedScanData>) {
+    setAdvanced((prev) => ({ ...prev, ...patch }));
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
     const w = weight ? parseFloat(weight) : null;
     const bfVal = bf ? parseFloat(bf) : null;
+    const hasAdvanced = Object.values(advanced).some((v) => v != null);
     const scan: BodyScan = {
       date,
       weight: w,
@@ -65,11 +83,15 @@ export default function ScanPage() {
       goalBf: targetBf,
       device,
       deviceLabel: device === "OTHER" ? deviceLabel || null : null,
+      advanced: hasAdvanced ? advanced : null,
     };
     await supabase.from("body_scans").insert(bodyScanToRow(user.id, scan));
     await loadAll();
     setWeight("");
     setBf("");
+    setAdvanced(EMPTY_ADVANCED);
+    setShowAdvanced(false);
+    setShowSegmental(false);
     setSaving(false);
   }
 
@@ -98,6 +120,7 @@ export default function ScanPage() {
   })();
 
   const history = [...scans].reverse();
+  const latestHasAdvancedData = latest && (latest.advanced != null || (latest.bf != null && sex && birthYear));
 
   return (
     <div className="animate-rise">
@@ -137,6 +160,35 @@ export default function ScanPage() {
               True-value range: {formatErrorRange(parseFloat(bf), device)}
             </p>
           )}
+
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="tap-scale w-full mt-4 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-2)] border border-dashed border-[var(--border)] rounded-md py-2"
+          >
+            {showAdvanced ? "− Hide Advanced Data" : "+ Advanced Data"}
+          </button>
+
+          {showAdvanced && (
+            <div className="mt-3.5 pt-3.5 border-t border-[var(--border-soft)]">
+              <AdvancedScanFields value={advanced} onChange={handleAdvancedChange} />
+
+              <button
+                type="button"
+                onClick={() => setShowSegmental((v) => !v)}
+                className="tap-scale w-full mt-3.5 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-2)] border border-dashed border-[var(--border)] rounded-md py-2"
+              >
+                {showSegmental ? "− Hide Segmental Analysis" : "+ Segmental Analysis"}
+              </button>
+
+              {showSegmental && (
+                <div className="mt-3.5 pt-3.5 border-t border-[var(--border-soft)]">
+                  <SegmentalDiagram value={advanced} onChange={handleAdvancedChange} />
+                </div>
+              )}
+            </div>
+          )}
+
           <Button type="submit" variant="primary" full className="mt-3.5" disabled={saving}>
             {saving ? "Saving…" : "Save Scan"}
           </Button>
@@ -171,6 +223,28 @@ export default function ScanPage() {
               </StatRow>
             </div>
           </div>
+
+          {latestHasAdvancedData && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowLatestAdvanced((v) => !v)}
+                className="tap-scale w-full mt-4 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-2)]"
+              >
+                {showLatestAdvanced ? "− Hide Advanced Data" : "▾ View Advanced Data"}
+              </button>
+              {showLatestAdvanced && (
+                <AdvancedScanSummary
+                  advanced={latest.advanced}
+                  bf={latest.bf}
+                  weight={latest.weight}
+                  height={latest.height}
+                  sex={sex}
+                  birthYear={birthYear}
+                />
+              )}
+            </>
+          )}
         </Card>
       )}
 

@@ -14,6 +14,7 @@ export type Database = {
     Tables: {
       body_scans: {
         Row: {
+          advanced: Json | null;
           bf: number | null;
           date: string;
           device: string;
@@ -26,6 +27,7 @@ export type Database = {
           weight: number | null;
         };
         Insert: {
+          advanced?: Json | null;
           bf?: number | null;
           date: string;
           device?: string;
@@ -38,6 +40,7 @@ export type Database = {
           weight?: number | null;
         };
         Update: {
+          advanced?: Json | null;
           bf?: number | null;
           date?: string;
           device?: string;
@@ -322,6 +325,42 @@ export type ScanDevice =
   | "BIA_SCALE"
   | "OTHER";
 
+// Optional multi-frequency BIA / advanced scan readout fields (Evolt 360,
+// InBody, and similar devices report some subset of these). All optional
+// since no two devices report the same set. Values are stored as entered —
+// only bf/waistToHipRatio/visceralFatLevel/bmr have a defensible reference
+// range to rate against (see lib/health-ranges.ts); the rest are logged
+// as plain numbers with no fabricated "normal range".
+export interface AdvancedScanData {
+  skeletalMuscleMass?: number | null;
+  proteinMass?: number | null;
+  mineralMass?: number | null;
+  totalBodyWater?: number | null;
+  bodyFatMass?: number | null;
+  subcutaneousFatMass?: number | null;
+  visceralFatMass?: number | null;
+  visceralFatLevel?: number | null;
+  visceralFatArea?: number | null;
+  icf?: number | null;
+  ecf?: number | null;
+  bmr?: number | null;
+  tee?: number | null;
+  bioAge?: number | null;
+  bwiScore?: number | null;
+  waistToHipRatio?: number | null;
+  abdominalCircumference?: number | null;
+  leftArmLean?: number | null;
+  leftArmFat?: number | null;
+  rightArmLean?: number | null;
+  rightArmFat?: number | null;
+  torsoLean?: number | null;
+  torsoFat?: number | null;
+  leftLegLean?: number | null;
+  leftLegFat?: number | null;
+  rightLegLean?: number | null;
+  rightLegFat?: number | null;
+}
+
 export interface BodyScan {
   id?: number;
   date: string;
@@ -332,6 +371,7 @@ export interface BodyScan {
   goalBf: number | null;
   device: ScanDevice;
   deviceLabel: string | null;
+  advanced: AdvancedScanData | null;
 }
 
 export type StackKind = "peptide" | "supplement";
@@ -364,10 +404,14 @@ export interface LiftGoal {
   deadline?: string;
 }
 
+export type Sex = "male" | "female";
+
 export interface UserGoals {
   primaryGoal: PrimaryGoal | null;
   targetBf: number | null;
   targetLeanMass: number | null;
   targetBodyweight: number | null;
   liftGoals: LiftGoal[];
+  sex: Sex | null;
+  birthYear: number | null;
 }
