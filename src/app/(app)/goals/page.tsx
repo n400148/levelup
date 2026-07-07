@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { workoutLogFromRow } from "@/lib/mapping";
-import type { LiftGoal, PrimaryGoal, Sex, UserGoals, WorkoutLog } from "@/lib/types";
+import type { LiftGoal, PrimaryGoal, UserGoals, WorkoutLog } from "@/lib/types";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Input, Label, Select } from "@/components/ui/Input";
@@ -26,8 +26,6 @@ const EMPTY_GOALS: UserGoals = {
   sex: null,
   birthYear: null,
 };
-
-const CURRENT_YEAR = new Date().getFullYear();
 
 export default function GoalsPage() {
   const { user } = useAuth();
@@ -151,30 +149,6 @@ export default function GoalsPage() {
             onChange={(e) => setGoals({ ...goals, targetBodyweight: e.target.value ? parseFloat(e.target.value) : null })}
             placeholder="185"
           />
-
-          <Label>Sex</Label>
-          <Select
-            value={goals.sex ?? ""}
-            onChange={(e) => setGoals({ ...goals, sex: (e.target.value || null) as Sex | null })}
-          >
-            <option value="">Not set</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </Select>
-          <Label>Birth Year</Label>
-          <Input
-            type="number"
-            inputMode="numeric"
-            min={1900}
-            max={CURRENT_YEAR}
-            value={goals.birthYear ?? ""}
-            onChange={(e) => setGoals({ ...goals, birthYear: e.target.value ? parseInt(e.target.value, 10) : null })}
-            placeholder="1998"
-          />
-          <p className="text-[10.5px] text-[var(--text-faint)] mt-1.5">
-            Used only to show age/sex-adjusted reference ranges on the Scan tab (body fat %, waist-to-hip ratio,
-            visceral fat level). Optional.
-          </p>
 
           <Button type="submit" variant="primary" full className="mt-3.5" disabled={saving}>
             {saving ? "Saving…" : "Save Targets"}

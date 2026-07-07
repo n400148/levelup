@@ -23,14 +23,24 @@ import { AdvancedScanSummary } from "@/components/body/AdvancedScanSummary";
 
 const EMPTY_ADVANCED: AdvancedScanData = {};
 
+const EMPTY_GOALS: UserGoals = {
+  primaryGoal: null,
+  targetBf: null,
+  targetLeanMass: null,
+  targetBodyweight: null,
+  liftGoals: [],
+  sex: null,
+  birthYear: null,
+};
+
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function ScanPage() {
   const { user } = useAuth();
   const supabase = createClient();
 
   const [scans, setScans] = useState<BodyScan[]>([]);
-  const [targetBf, setTargetBf] = useState<number | null>(null);
-  const [sex, setSex] = useState<Sex | null>(null);
-  const [birthYear, setBirthYear] = useState<number | null>(null);
+  const [goals, setGoals] = useState<UserGoals>(EMPTY_GOALS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -51,10 +61,7 @@ export default function ScanPage() {
       supabase.from("user_goals").select("goals").maybeSingle(),
     ]);
     if (scansRes.data) setScans(scansRes.data.map(bodyScanFromRow));
-    const goalsData = goalsRes.data?.goals as unknown as UserGoals | undefined;
-    setTargetBf(goalsData?.targetBf ?? null);
-    setSex(goalsData?.sex ?? null);
-    setBirthYear(goalsData?.birthYear ?? null);
+    if (goalsRes.data?.goals) setGoals({ ...EMPTY_GOALS, ...(goalsRes.data.goals as unknown as UserGoals) });
     setLoading(false);
   }
 
@@ -65,6 +72,13 @@ export default function ScanPage() {
 
   function handleAdvancedChange(patch: Partial<AdvancedScanData>) {
     setAdvanced((prev) => ({ ...prev, ...patch }));
+  }
+
+  async function updateProfile(patch: Partial<UserGoals>) {
+    if (!user) return;
+    const next = { ...goals, ...patch };
+    setGoals(next);
+    await supabase.from("user_goals").upsert({ user_id: user.id, goals: next as never }, { onConflict: "user_id" });
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -80,7 +94,7 @@ export default function ScanPage() {
       bf: bfVal,
       lmm: w && bfVal ? Math.round(w * (1 - bfVal / 100) * 10) / 10 : null,
       height: height ? parseFloat(height) : null,
-      goalBf: targetBf,
+      goalBf: goals.targetBf,
       device,
       deviceLabel: device === "OTHER" ? deviceLabel || null : null,
       advanced: hasAdvanced ? advanced : null,
@@ -114,16 +128,50 @@ export default function ScanPage() {
   }, [scans]);
 
   const ringPct = (() => {
-    if (!latest?.bf || !first?.bf || targetBf == null || targetBf === first.bf) return null;
-    const p = ((first.bf - latest.bf) / (first.bf - targetBf)) * 100;
+    if (!latest?.bf || !first?.bf || goals.targetBf == null || goals.targetBf === first.bf) return null;
+    const p = ((first.bf - latest.bf) / (first.bf - goals.targetBf)) * 100;
     return Math.max(0, Math.min(100, p));
   })();
 
   const history = [...scans].reverse();
-  const latestHasAdvancedData = latest && (latest.advanced != null || (latest.bf != null && sex && birthYear));
+  const latestHasAdvancedData =
+    latest && (latest.advanced != null || (latest.bf != null && goals.sex && goals.birthYear));
 
   return (
     <div className="animate-rise">
+      <Card>
+        <CardTitle>Profile</CardTitle>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Sex</Label>
+            <Select
+              value={goals.sex ?? ""}
+              onChange={(e) => updateProfile({ sex: (e.target.value || null) as Sex | null })}
+            >
+              <option value="">Not set</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </Select>
+          </div>
+          <div>
+            <Label>Birth Year</Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1900}
+              max={CURRENT_YEAR}
+              value={goals.birthYear ?? ""}
+              placeholder="1998"
+              onChange={(e) => updateProfile({ birthYear: e.target.value ? parseInt(e.target.value, 10) : null })}
+            />
+          </div>
+        </div>
+        <p className="text-[10.5px] text-[var(--text-faint)] mt-2">
+          Optional — used only to show age/sex-adjusted reference ranges below (body fat %, waist-to-hip ratio,
+          visceral fat level).
+        </p>
+      </Card>
+
       <Card>
         <CardTitle>Log Body Scan</CardTitle>
         <form onSubmit={handleSave}>
@@ -239,8 +287,8 @@ export default function ScanPage() {
                   bf={latest.bf}
                   weight={latest.weight}
                   height={latest.height}
-                  sex={sex}
-                  birthYear={birthYear}
+                  sex={goals.sex}
+                  birthYear={goals.birthYear}
                 />
               )}
             </>

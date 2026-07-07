@@ -61,6 +61,17 @@ export default function NutritionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, entries.length]);
 
+  function handleEditEntry(entryDate: string) {
+    setDate(entryDate);
+    document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleDeleteEntry(entryDate: string) {
+    if (!user) return;
+    await supabase.from("nutrition").delete().eq("user_id", user.id).eq("date", entryDate);
+    await loadAll();
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -101,7 +112,7 @@ export default function NutritionPage() {
             <Label>Water (oz)</Label>
             <Input type="number" inputMode="numeric" value={form.water} onChange={(e) => setForm({ ...form, water: e.target.value })} placeholder="0" />
             <Button type="submit" variant="primary" full className="mt-3.5" disabled={saving}>
-              {saving ? "Saving…" : "Save"}
+              {saving ? "Saving…" : todayEntry ? "Update Entry" : "Save"}
             </Button>
           </form>
 
@@ -176,8 +187,24 @@ export default function NutritionPage() {
         <Card>
           <CardTitle>History</CardTitle>
           {history.map((e) => (
-            <div key={e.date} className="flex items-center justify-between bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2 mb-2 last:mb-0">
-              <span className="text-[11px] text-[var(--text-mute)] uppercase font-semibold">{formatShortDate(e.date)}</span>
+            <div key={e.date} className="bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2 mb-2 last:mb-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-[var(--text-mute)] uppercase font-semibold">{formatShortDate(e.date)}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleEditEntry(e.date)}
+                    className="tap-scale text-[var(--accent-2)] text-[10px] font-bold uppercase"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEntry(e.date)}
+                    className="tap-scale text-[var(--danger)] text-[10px] font-bold uppercase"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
               <span className="font-mono text-[12.5px] text-[var(--text-dim)]">
                 {e.calories ?? "–"} kcal · P{e.protein ?? "–"} C{e.carbs ?? "–"} F{e.fats ?? "–"}
               </span>
