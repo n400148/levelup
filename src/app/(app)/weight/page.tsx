@@ -15,7 +15,12 @@ import { ScaleIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { DeltaPill } from "@/components/ui/Chip";
 import { Disclaimer } from "@/components/ui/Disclaimer";
-import { WeightChart } from "@/components/weight/WeightChart";
+import dynamic from "next/dynamic";
+
+const WeightChart = dynamic(() => import("@/components/weight/WeightChart").then((m) => m.WeightChart), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[180px] w-full" />,
+});
 
 export default function WeightPage() {
   const { user } = useAuth();

@@ -16,10 +16,19 @@ import { ChartIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { ProgressRing } from "@/components/ui/ProgressRing";
-import { BodyScanChart } from "@/components/body/BodyScanChart";
-import { AdvancedScanFields } from "@/components/body/AdvancedScanFields";
-import { SegmentalDiagram } from "@/components/body/SegmentalDiagram";
-import { AdvancedScanSummary } from "@/components/body/AdvancedScanSummary";
+import dynamic from "next/dynamic";
+
+const BodyScanChart = dynamic(() => import("@/components/body/BodyScanChart").then((m) => m.BodyScanChart), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[140px] w-full" />,
+});
+const AdvancedScanFields = dynamic(() =>
+  import("@/components/body/AdvancedScanFields").then((m) => m.AdvancedScanFields),
+);
+const SegmentalDiagram = dynamic(() => import("@/components/body/SegmentalDiagram").then((m) => m.SegmentalDiagram));
+const AdvancedScanSummary = dynamic(() =>
+  import("@/components/body/AdvancedScanSummary").then((m) => m.AdvancedScanSummary),
+);
 
 const EMPTY_ADVANCED: AdvancedScanData = {};
 

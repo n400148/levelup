@@ -13,7 +13,12 @@ import { Button } from "@/components/ui/Button";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { MacroBar } from "@/components/nutrition/MacroBar";
-import { CalorieChart } from "@/components/nutrition/CalorieChart";
+import dynamic from "next/dynamic";
+
+const CalorieChart = dynamic(() => import("@/components/nutrition/CalorieChart").then((m) => m.CalorieChart), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[150px] w-full" />,
+});
 
 export default function NutritionPage() {
   const { user } = useAuth();
