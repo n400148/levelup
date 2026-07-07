@@ -15,14 +15,14 @@ export function CalorieChart({ entries }: { entries: NutritionEntry[] }) {
     <div className="h-[150px] -mx-2">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-          <XAxis dataKey="label" tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={{ stroke: "#35353c" }} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={34} />
+          <XAxis dataKey="label" tick={{ fill: "#96897a", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={{ stroke: "#413830" }} tickLine={false} interval="preserveStartEnd" />
+          <YAxis tick={{ fill: "#96897a", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={34} />
           <Tooltip
-            contentStyle={{ background: "#1e1e23", border: "1px solid #35353c", borderRadius: 10, fontSize: 12, fontFamily: "var(--font-mono)" }}
-            labelStyle={{ color: "#b0b0b8" }}
+            contentStyle={{ background: "#26211a", border: "1px solid #413830", borderRadius: 10, fontSize: 12, fontFamily: "var(--font-mono)" }}
+            labelStyle={{ color: "#bdb3a6" }}
             formatter={(v) => [`${Number(v ?? 0)} kcal`, "Calories"]}
           />
-          <Line type="monotone" dataKey="calories" stroke="#8a7ee8" strokeWidth={2.5} dot={{ r: 2.5, fill: "#5b4fcc", strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="calories" stroke="#dda06b" strokeWidth={2.5} dot={{ r: 2.5, fill: "#c97c4a", strokeWidth: 0 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

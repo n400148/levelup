@@ -1,7 +1,7 @@
 import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 const base =
-  "w-full bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-[15px] font-medium text-[var(--text)] outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(108,92,231,0.18)] transition-shadow";
+  "w-full bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-[15px] font-medium text-[var(--text)] outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(201,124,74,0.18)] transition-shadow";
 
 export function Label({ children }: { children: React.ReactNode }) {
   return (

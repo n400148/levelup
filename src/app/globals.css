@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0a0c;
-  --bg-raised: #16161a;
-  --bg-inset: #1e1e23;
-  --bg-inset-2: #29292f;
-  --border: #2a2a30;
-  --border-soft: #232328;
-  --text: #f2f2f4;
-  --text-dim: #b0b0b8;
-  --text-mute: #86868f;
-  --text-faint: #6f6f7a;
-  --accent: #5b4fcc;
-  --accent-2: #8a7ee8;
-  --accent-grad: linear-gradient(135deg, #5b4fcc, #8a7ee8);
-  --success: #4c9c77;
-  --danger: #c2564e;
+  --bg: #14110d;
+  --bg-raised: #1e1a15;
+  --bg-inset: #26211a;
+  --bg-inset-2: #322c23;
+  --border: #362f26;
+  --border-soft: #2a251e;
+  --text: #f5f1ec;
+  --text-dim: #bdb3a6;
+  --text-mute: #96897a;
+  --text-faint: #7a6f62;
+  --accent: #c97c4a;
+  --accent-2: #dda06b;
+  --accent-grad: linear-gradient(135deg, #c97c4a, #dda06b);
+  --success: #7a9b76;
+  --danger: #a8493e;
 }
 
 @theme inline {
@@ -35,7 +35,7 @@
   --color-danger: var(--danger);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
+  --font-mono: var(--font-display);
 }
 
 html, body {
@@ -53,13 +53,13 @@ body {
 
 .font-display {
   font-family: var(--font-display), sans-serif;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.005em;
 }
 
 .font-mono {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-display), sans-serif;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.005em;
 }
 
 .eyebrow {

@@ -16,7 +16,7 @@ const TABS = [
   { href: "/weight", label: "Weight", Icon: WeightIcon },
   { href: "/train", label: "Train", Icon: TrainIcon },
   { href: "/nutrition", label: "Nutrition", Icon: NutritionIcon },
-  { href: "/body", label: "Body", Icon: BodyIcon },
+  { href: "/scan", label: "Scan", Icon: BodyIcon },
   { href: "/stack", label: "Stack", Icon: StackIcon },
   { href: "/goals", label: "Goals", Icon: GoalsIcon },
   { href: "/insights", label: "Insights", Icon: InsightsIcon },

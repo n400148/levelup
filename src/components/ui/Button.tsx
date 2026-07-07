@@ -5,10 +5,10 @@ type Size = "md" | "sm";
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_10px_-3px_rgba(91,79,204,0.5)]",
+    "bg-[var(--accent)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_10px_-3px_rgba(201,124,74,0.5)]",
   secondary: "bg-[var(--bg-inset)] text-[var(--text)] border border-[var(--border)]",
-  teal: "bg-[rgba(155,140,255,0.1)] text-[var(--accent-2)] border border-[rgba(155,140,255,0.3)]",
-  danger: "bg-[rgba(194,86,78,0.12)] text-[var(--danger)] border border-[rgba(194,86,78,0.25)]",
+  teal: "bg-[rgba(221,160,107,0.1)] text-[var(--accent-2)] border border-[rgba(221,160,107,0.3)]",
+  danger: "bg-[rgba(168,73,62,0.12)] text-[var(--danger)] border border-[rgba(168,73,62,0.25)]",
   ghost: "bg-transparent text-[var(--accent-2)]",
 };
 

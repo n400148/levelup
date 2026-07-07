@@ -122,7 +122,7 @@ export default function NutritionPage() {
                 <div className="space-y-1.5 text-[13px] font-mono">
                   <div className="flex justify-between">
                     <span className="text-[var(--text-mute)] font-body">Calories</span>
-                    <span className="font-bold text-[#a996ff]">{macros.calories}</span>
+                    <span className="font-bold text-[#dda06b]">{macros.calories}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-mute)] font-body">Protein</span>

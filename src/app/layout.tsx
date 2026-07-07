@@ -1,25 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter, Space_Mono } from "next/font/google";
+import { Barlow_Semi_Condensed, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister";
 
-const display = Space_Grotesk({
+const display = Barlow_Semi_Condensed({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
 });
 
 const body = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-});
-
-const mono = Space_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -46,7 +40,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#0a0a0c",
+  themeColor: "#14110d",
 };
 
 export default function RootLayout({
@@ -55,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable} h-full`}>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="h-full bg-[var(--bg)] text-[var(--text)] antialiased">
         <AuthProvider>{children}</AuthProvider>
         <ServiceWorkerRegister />

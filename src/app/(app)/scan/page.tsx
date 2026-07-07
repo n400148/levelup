@@ -18,7 +18,7 @@ import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { BodyScanChart } from "@/components/body/BodyScanChart";
 
-export default function BodyPage() {
+export default function ScanPage() {
   const { user } = useAuth();
   const supabase = createClient();
 

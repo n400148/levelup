@@ -89,7 +89,7 @@ export function PlanEditor({
                   else itemRefs.current.delete(ex.name);
                 }}
                 className={`bg-[var(--bg-inset)] border rounded-lg mb-2 overflow-hidden transition-shadow ${
-                  dragging ? "border-[var(--accent)] shadow-[0_4px_16px_-4px_rgba(108,92,231,0.5)] z-10 relative" : "border-[var(--border-soft)]"
+                  dragging ? "border-[var(--accent)] shadow-[0_4px_16px_-4px_rgba(201,124,74,0.5)] z-10 relative" : "border-[var(--border-soft)]"
                 }`}
               >
                 <div className="flex items-center justify-between pl-1 pr-3 py-2">

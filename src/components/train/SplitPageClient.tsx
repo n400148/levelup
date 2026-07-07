@@ -224,7 +224,7 @@ export function SplitPageClient({ split }: { split: Split }) {
                   onClick={() => setSelectedDay(d)}
                   className={`tap-scale shrink-0 rounded-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide border ${
                     selectedDay === d
-                      ? "bg-[rgba(108,92,231,0.15)] border-[var(--accent)] text-[#a996ff]"
+                      ? "bg-[rgba(201,124,74,0.15)] border-[var(--accent)] text-[#dda06b]"
                       : "bg-[var(--bg-inset)] border-[var(--border)] text-[var(--text-mute)]"
                   }`}
                 >

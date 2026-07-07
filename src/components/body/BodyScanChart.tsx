@@ -22,15 +22,15 @@ export function BodyScanChart({ scans, device }: { scans: BodyScan[]; device: Sc
       <div className="h-[140px] -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
-            <XAxis dataKey="label" tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={{ stroke: "#35353c" }} tickLine={false} />
-            <YAxis tick={{ fill: "#86868f", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={34} unit="%" />
+            <XAxis dataKey="label" tick={{ fill: "#96897a", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={{ stroke: "#413830" }} tickLine={false} />
+            <YAxis tick={{ fill: "#96897a", fontSize: 9, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={34} unit="%" />
             <Tooltip
-              contentStyle={{ background: "#1e1e23", border: "1px solid #35353c", borderRadius: 10, fontSize: 12, fontFamily: "var(--font-mono)" }}
-              labelStyle={{ color: "#b0b0b8" }}
+              contentStyle={{ background: "#26211a", border: "1px solid #413830", borderRadius: 10, fontSize: 12, fontFamily: "var(--font-mono)" }}
+              labelStyle={{ color: "#bdb3a6" }}
               formatter={(v) => [`${Number(v ?? 0).toFixed(1)}%`, "Body Fat"]}
             />
-            <Line type="monotone" dataKey="bf" stroke="#8a7ee8" strokeWidth={2.5} dot={{ r: 3, fill: "#5b4fcc", strokeWidth: 0 }}>
-              <ErrorBar dataKey="err" width={4} stroke="rgba(138,126,232,0.5)" strokeWidth={1.5} />
+            <Line type="monotone" dataKey="bf" stroke="#dda06b" strokeWidth={2.5} dot={{ r: 3, fill: "#c97c4a", strokeWidth: 0 }}>
+              <ErrorBar dataKey="err" width={4} stroke="rgba(221,160,107,0.5)" strokeWidth={1.5} />
             </Line>
           </ComposedChart>
         </ResponsiveContainer>
