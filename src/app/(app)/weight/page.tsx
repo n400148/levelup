@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { weightFromRow, weightToRow } from "@/lib/mapping";
 import type { WeightEntry } from "@/lib/types";
-import { todayISO, formatShortDate } from "@/lib/date";
+import { todayISO, formatShortDate, isoDaysAgo } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ScaleIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { DeltaPill } from "@/components/ui/Chip";
 import { Disclaimer } from "@/components/ui/Disclaimer";
 import dynamic from "next/dynamic";
+
+type ChartRange = "1w" | "1m" | "all";
 
 const WeightChart = dynamic(() => import("@/components/weight/WeightChart").then((m) => m.WeightChart), {
   ssr: false,
@@ -32,6 +35,7 @@ export default function WeightPage() {
   const [weight, setWeight] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState<ChartRange>("1m");
 
   async function load() {
     const { data, error } = await supabase
@@ -91,7 +95,11 @@ export default function WeightPage() {
   const first = sorted[0];
   const lastChange = current && previous ? current.weight - previous.weight : 0;
   const totalChange = current && first ? current.weight - first.weight : 0;
-  const chartEntries = sorted.slice(-60);
+  const chartEntries = useMemo(() => {
+    if (range === "all") return sorted;
+    const cutoff = isoDaysAgo(range === "1w" ? 7 : 30);
+    return sorted.filter((e) => e.date >= cutoff);
+  }, [sorted, range]);
   const history = [...sorted].reverse();
 
   return (
@@ -157,7 +165,22 @@ export default function WeightPage() {
 
           <Card>
             <CardTitle>Trend</CardTitle>
-            <WeightChart entries={chartEntries} />
+            <SegmentedToggle
+              value={range}
+              onChange={setRange}
+              options={[
+                { value: "1w", label: "1 Week" },
+                { value: "1m", label: "1 Month" },
+                { value: "all", label: "All Time" },
+              ]}
+            />
+            {chartEntries.length > 0 ? (
+              <WeightChart entries={chartEntries} />
+            ) : (
+              <p className="text-[12px] text-[var(--text-faint)] text-center py-8">
+                No entries in this range.
+              </p>
+            )}
           </Card>
 
           <Card>
