@@ -5,11 +5,25 @@ import type { LoggedExercise, LoggedSet, PlanExercise } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 
+interface Progress {
+  exIndex: number;
+  setIndex: number;
+  collected: LoggedExercise[];
+}
+
+interface HistoryEntry {
+  exIndex: number;
+  setIndex: number;
+  loggedSet: LoggedSet | null;
+}
+
 interface Props {
   exercises: PlanExercise[];
   previousSetsFor: (name: string) => LoggedSet[] | null;
   onFinish: (exercises: LoggedExercise[]) => void;
   onCancel: () => void;
+  initial?: Progress;
+  onProgress?: (progress: Progress) => void;
 }
 
 function formatClock(totalSeconds: number): string {
@@ -18,10 +32,11 @@ function formatClock(totalSeconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel }: Props) {
-  const [exIndex, setExIndex] = useState(0);
-  const [setIndex, setSetIndex] = useState(0);
-  const [collected, setCollected] = useState<LoggedExercise[]>([]);
+export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel, initial, onProgress }: Props) {
+  const [exIndex, setExIndex] = useState(initial?.exIndex ?? 0);
+  const [setIndex, setSetIndex] = useState(initial?.setIndex ?? 0);
+  const [collected, setCollected] = useState<LoggedExercise[]>(initial?.collected ?? []);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [effort, setEffort] = useState("");
@@ -45,6 +60,11 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    onProgress?.({ exIndex, setIndex, collected });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exIndex, setIndex, collected]);
 
   function startRest(seconds: number) {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -106,11 +126,46 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
       next[idx] = { ...next[idx], sets: [...next[idx].sets, newSet] };
       return next;
     });
+    setHistory((prev) => [...prev, { exIndex, setIndex, loggedSet: newSet }]);
     advance(true);
   }
 
   function skipSet() {
+    setHistory((prev) => [...prev, { exIndex, setIndex, loggedSet: null }]);
     advance(false);
+  }
+
+  function goBack() {
+    if (history.length === 0) return;
+    const last = history[history.length - 1];
+    setHistory((prev) => prev.slice(0, -1));
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setRestRemaining(0);
+    setExIndex(last.exIndex);
+    setSetIndex(last.setIndex);
+
+    if (last.loggedSet) {
+      const exName = exercises[last.exIndex].name;
+      setCollected((prev) => {
+        const idx = prev.findIndex((e) => e.name === exName);
+        if (idx === -1) return prev;
+        const sets = prev[idx].sets.slice(0, -1);
+        const next = [...prev];
+        if (sets.length === 0) {
+          next.splice(idx, 1);
+        } else {
+          next[idx] = { ...next[idx], sets };
+        }
+        return next;
+      });
+      setWeight(last.loggedSet.weight ? String(last.loggedSet.weight) : "");
+      setReps(last.loggedSet.reps ? String(last.loggedSet.reps) : "");
+      setEffort(last.loggedSet.effort ? String(last.loggedSet.effort) : "");
+    } else {
+      setWeight("");
+      setReps("");
+      setEffort("");
+    }
   }
 
   function endEarly() {
@@ -162,6 +217,14 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
             <Button variant="secondary" full onClick={skipRest}>
               Skip Rest
             </Button>
+            {history.length > 0 && (
+              <button
+                onClick={goBack}
+                className="tap-scale w-full mt-3 text-[11px] font-semibold text-[var(--accent-2)]"
+              >
+                ‹ Undo Last Set
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -203,7 +266,12 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel 
               placeholder="-"
             />
 
-            <div className="flex gap-2.5 mt-5">
+            <div className="flex gap-2 mt-5">
+              {history.length > 0 && (
+                <Button variant="secondary" onClick={goBack} className="!px-3.5 whitespace-nowrap">
+                  ‹ Back
+                </Button>
+              )}
               <Button variant="secondary" full onClick={skipSet}>
                 Skip Set
               </Button>

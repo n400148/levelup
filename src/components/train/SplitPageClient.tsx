@@ -9,6 +9,12 @@ import type { LoggedExercise, LoggedSet, PlanExercise, Split, UserGoals, Workout
 import { SPLIT_MUSCLES, SPLIT_PRESETS } from "@/lib/train-data";
 import { getProgressionForExercise, PROGRESSION_DISCLAIMER } from "@/lib/progression";
 import { todayISO } from "@/lib/date";
+import {
+  clearSavedSession,
+  loadSavedSession,
+  saveSession as persistWorkoutProgress,
+  type SavedSession,
+} from "@/lib/session-storage";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +47,17 @@ export function SplitPageClient({ split }: { split: Split }) {
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
+  const [sessionInitial, setSessionInitial] = useState<
+    { exIndex: number; setIndex: number; collected: LoggedExercise[] } | undefined
+  >(undefined);
+  const [resumable, setResumable] = useState<SavedSession | null>(null);
+
+  useEffect(() => {
+    const saved = loadSavedSession();
+    if (saved && saved.split === split && saved.date === todayISO()) {
+      setResumable(saved);
+    }
+  }, [split]);
 
   async function loadAll() {
     const [plansRes, logsRes, goalsRes] = await Promise.all([
@@ -180,9 +197,34 @@ export function SplitPageClient({ split }: { split: Split }) {
       await supabase.from("workout_logs").insert(workoutLogToRow(user.id, row));
     }
     await loadAll();
+    clearSavedSession();
+    setSessionInitial(undefined);
     setSessionActive(false);
     setLogDate(today);
     setMode("log");
+  }
+
+  function handleStartWorkout() {
+    setSessionInitial(undefined);
+    setResumable(null);
+    setSessionActive(true);
+  }
+
+  function handleResumeSession() {
+    if (!resumable) return;
+    setSelectedDay(resumable.day);
+    setSessionInitial({ exIndex: resumable.exIndex, setIndex: resumable.setIndex, collected: resumable.collected });
+    setSessionActive(true);
+    setResumable(null);
+  }
+
+  function handleDiscardResumable() {
+    clearSavedSession();
+    setResumable(null);
+  }
+
+  function handleSessionProgress(progress: { exIndex: number; setIndex: number; collected: LoggedExercise[] }) {
+    persistWorkoutProgress({ split, day: selectedDay, date: todayISO(), ...progress });
   }
 
   return (
@@ -255,6 +297,8 @@ export function SplitPageClient({ split }: { split: Split }) {
           previousSetsFor={previousSetsFor}
           onFinish={handleSessionFinish}
           onCancel={() => setSessionActive(false)}
+          initial={sessionInitial}
+          onProgress={handleSessionProgress}
         />
       ) : mode === "plan" ? (
         <Card>
@@ -281,11 +325,26 @@ export function SplitPageClient({ split }: { split: Split }) {
                 className="!w-auto text-[12px] py-1.5"
               />
             </div>
+            {resumable && (
+              <div className="bg-[rgba(201,124,74,0.1)] border border-[rgba(201,124,74,0.3)] rounded-lg px-3 py-2.5 mb-3">
+                <p className="text-[12px] text-[var(--text-dim)] mb-2">
+                  You left an unfinished Day {resumable.day} workout in progress.
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="primary" full onClick={handleResumeSession}>
+                    Resume Workout
+                  </Button>
+                  <Button variant="secondary" onClick={handleDiscardResumable}>
+                    Discard
+                  </Button>
+                </div>
+              </div>
+            )}
             <Button
               variant="primary"
               full
               disabled={(dayPlan[selectedDay] ?? []).length === 0}
-              onClick={() => setSessionActive(true)}
+              onClick={handleStartWorkout}
             >
               ▶ Start Workout
             </Button>
