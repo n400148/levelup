@@ -51,9 +51,6 @@ export default function InsightsPage() {
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefError, setBriefError] = useState<string | null>(null);
 
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [testing, setTesting] = useState(false);
-
   useEffect(() => {
     async function load() {
       const [w, l, n, s, p, sup, g] = await Promise.all([
@@ -133,24 +130,6 @@ export default function InsightsPage() {
     }
   }
 
-  async function handleTestConnection() {
-    setTesting(true);
-    setTestResult(null);
-    try {
-      const res = await fetch("/api/ai/test", { method: "POST" });
-      const data = await res.json();
-      setTestResult(
-        data.ok
-          ? `Connected · ${data.modelUsed}`
-          : `Failed: ${data.error ?? (data.raw ? `model replied "${data.raw}" instead of the expected check string` : "unknown error")}`,
-      );
-    } catch (e) {
-      setTestResult(`Failed: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setTesting(false);
-    }
-  }
-
   return (
     <div className="animate-rise">
       <Card>
@@ -193,18 +172,6 @@ export default function InsightsPage() {
             <div className="eyebrow mb-2">◈ Coach Brief</div>
             <div className="text-[13px] text-[var(--text-dim)] leading-relaxed whitespace-pre-line">{brief}</div>
           </div>
-        )}
-      </Card>
-
-      <Card>
-        <CardTitle>Connection Check</CardTitle>
-        <Button variant="secondary" full onClick={handleTestConnection} disabled={testing}>
-          {testing ? "Testing…" : "Test AI Connection"}
-        </Button>
-        {testResult && (
-          <p className={`text-[12px] mt-2 ${testResult.startsWith("Connected") ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
-            {testResult}
-          </p>
         )}
       </Card>
 
