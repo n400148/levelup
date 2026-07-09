@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import type { Split, SplitProgram, UserGoals, WorkoutPlans } from "@/lib/types";
+import type { RotationSlot, Split, SplitProgram, UserGoals, WorkoutPlans } from "@/lib/types";
 import { sanitizeWorkoutPlans } from "@/lib/mapping";
-import { SPLIT_MUSCLES, PROGRAMS, UNIVERSAL_SPLITS, CUSTOMIZABLE_SPLITS, getProgram } from "@/lib/train-data";
+import {
+  SPLIT_MUSCLES,
+  PROGRAMS,
+  UNIVERSAL_SPLITS,
+  CUSTOMIZABLE_SPLITS,
+  PROGRAMS_WITH_ROTATION,
+  DEFAULT_ROTATION,
+  expandRotation,
+  getProgram,
+} from "@/lib/train-data";
 import { MuscleFigure, PulseFigure } from "@/components/train/MuscleFigure";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
@@ -24,6 +33,7 @@ const EMPTY_GOALS: UserGoals = {
   birthYear: null,
   splitProgram: null,
   customSplit: null,
+  rotation: null,
 };
 
 export default function TrainPage() {
@@ -36,6 +46,8 @@ export default function TrainPage() {
   const [buildingCustom, setBuildingCustom] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customDays, setCustomDays] = useState<Split[]>([]);
+  const [rotationProgram, setRotationProgram] = useState<SplitProgram | null>(null);
+  const [rotationDraft, setRotationDraft] = useState<RotationSlot[]>(DEFAULT_ROTATION);
 
   useEffect(() => {
     Promise.all([
@@ -80,6 +92,29 @@ export default function TrainPage() {
     await supabase.from("user_goals").upsert({ user_id: user.id, goals: next as never }, { onConflict: "user_id" });
   }
 
+  function startRotationBuilder(id: SplitProgram) {
+    const existing = goals.splitProgram === id ? goals.rotation : null;
+    setRotationDraft(existing && existing.length > 0 ? existing : DEFAULT_ROTATION);
+    setRotationProgram(id);
+  }
+
+  function addRotationSlot(slot: RotationSlot) {
+    setRotationDraft((prev) => [...prev, slot]);
+  }
+
+  function removeRotationSlot(index: number) {
+    setRotationDraft((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function saveRotation() {
+    if (!user || !rotationProgram || !rotationDraft.some((s) => s === "cycle")) return;
+    const next: UserGoals = { ...goals, splitProgram: rotationProgram, rotation: rotationDraft };
+    setGoals(next);
+    setRotationProgram(null);
+    setChoosing(false);
+    await supabase.from("user_goals").upsert({ user_id: user.id, goals: next as never }, { onConflict: "user_id" });
+  }
+
   if (loading) {
     return (
       <Card>
@@ -94,6 +129,60 @@ export default function TrainPage() {
   const activeDays: Split[] = isCustom ? (goals.customSplit?.days ?? []) : (program?.days ?? []);
   const activeLabel = isCustom ? goals.customSplit?.name?.trim() || "Custom Split" : (program?.label ?? "");
   const hasActiveProgram = isCustom ? activeDays.length > 0 : !!program;
+  const hasRotation = !!program && PROGRAMS_WITH_ROTATION.includes(program.id);
+
+  if (rotationProgram) {
+    const draftDays = getProgram(rotationProgram)?.days ?? [];
+    return (
+      <div className="animate-rise">
+        <Card>
+          <CardTitle>Set Your Rotation</CardTitle>
+          <p className="text-[11px] text-[var(--text-faint)] mb-3">
+            Build the pattern one block at a time — e.g. Cycle, Rest, Cycle, Rest for &ldquo;{draftDays.join("/")}{" "}
+            Rest {draftDays.join("/")} Rest&rdquo;.
+          </p>
+          {rotationDraft.map((slot, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2.5 mb-2"
+            >
+              <span className="flex-1 text-[12.5px] font-semibold">
+                {slot === "rest" ? "Rest Day" : draftDays.join(" · ")}
+              </span>
+              <button
+                onClick={() => removeRotationSlot(i)}
+                className="tap-scale text-[var(--danger)] text-[16px] leading-none px-1"
+                aria-label="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <div className="flex gap-2 mt-3">
+            <Button variant="secondary" full onClick={() => addRotationSlot("cycle")}>
+              + Cycle
+            </Button>
+            <Button variant="secondary" full onClick={() => addRotationSlot("rest")}>
+              + Rest
+            </Button>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button variant="secondary" full onClick={() => setRotationProgram(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              full
+              disabled={!rotationDraft.some((s) => s === "cycle")}
+              onClick={saveRotation}
+            >
+              Save
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (buildingCustom) {
     return (
@@ -145,7 +234,11 @@ export default function TrainPage() {
             return (
               <button
                 key={p.id}
-                onClick={() => (p.id === "CUSTOM" ? startCustomBuilder() : chooseProgram(p.id))}
+                onClick={() => {
+                  if (p.id === "CUSTOM") startCustomBuilder();
+                  else if (PROGRAMS_WITH_ROTATION.includes(p.id)) startRotationBuilder(p.id);
+                  else chooseProgram(p.id);
+                }}
                 className="tap-scale w-full text-left bg-[var(--bg-inset)] border border-[var(--border)] rounded-lg px-4 py-3 mb-2 last:mb-0"
               >
                 <div className="font-display text-[14px] font-semibold">{label}</div>
@@ -204,6 +297,34 @@ export default function TrainPage() {
           })}
         </div>
       </Card>
+
+      {hasRotation && program && (
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <CardTitle className="mb-0">Your Rotation</CardTitle>
+            <button
+              onClick={() => startRotationBuilder(program.id)}
+              className="tap-scale text-[10.5px] font-bold uppercase tracking-wide text-[var(--accent-2)]"
+            >
+              Edit
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {expandRotation(program.days, goals.rotation ?? DEFAULT_ROTATION).map((slot, i) => (
+              <span
+                key={i}
+                className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${
+                  slot === "Rest"
+                    ? "bg-[var(--bg-inset-2)] text-[var(--text-mute)]"
+                    : "bg-[rgba(201,124,74,0.15)] text-[#dda06b]"
+                }`}
+              >
+                {slot}
+              </span>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

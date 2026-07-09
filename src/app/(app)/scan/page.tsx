@@ -42,6 +42,7 @@ const EMPTY_GOALS: UserGoals = {
   birthYear: null,
   splitProgram: null,
   customSplit: null,
+  rotation: null,
 };
 
 const CURRENT_YEAR = new Date().getFullYear();

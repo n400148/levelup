@@ -1,4 +1,4 @@
-import { SPLITS, type Split, type SplitProgram } from "@/lib/types";
+import { SPLITS, type RotationSlot, type Split, type SplitProgram } from "@/lib/types";
 
 export type MuscleKey =
   | "chest"
@@ -103,4 +103,21 @@ export const PROGRAMS: ProgramMeta[] = [
 
 export function getProgram(id: SplitProgram | null): ProgramMeta | undefined {
   return PROGRAMS.find((p) => p.id === id);
+}
+
+// Only these programs have a natural "repeat the whole cycle, rest
+// somewhere" structure worth letting the user configure explicitly.
+export const PROGRAMS_WITH_ROTATION: SplitProgram[] = ["PPL", "UPPER_LOWER"];
+
+export const DEFAULT_ROTATION: RotationSlot[] = ["cycle", "rest"];
+
+/** Expands a cycle/rest sequence into actual day names, e.g. ["cycle","rest"]
+ * with days ["Upper","Lower"] -> ["Upper","Lower","Rest"]. */
+export function expandRotation(days: Split[], rotation: RotationSlot[]): (Split | "Rest")[] {
+  const result: (Split | "Rest")[] = [];
+  for (const slot of rotation) {
+    if (slot === "rest") result.push("Rest");
+    else result.push(...days);
+  }
+  return result;
 }

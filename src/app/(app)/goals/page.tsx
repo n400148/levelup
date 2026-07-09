@@ -27,6 +27,7 @@ const EMPTY_GOALS: UserGoals = {
   birthYear: null,
   splitProgram: null,
   customSplit: null,
+  rotation: null,
 };
 
 export default function GoalsPage() {

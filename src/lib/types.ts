@@ -285,6 +285,8 @@ export interface CustomSplit {
   days: Split[];
 }
 
+export type RotationSlot = "cycle" | "rest";
+
 export interface WeightEntry {
   date: string;
   weight: number;
@@ -435,4 +437,11 @@ export interface UserGoals {
   birthYear: number | null;
   splitProgram: SplitProgram | null;
   customSplit: CustomSplit | null;
+  /**
+   * For PPL/Upper-Lower: the rotation pattern as a sequence of cycle/rest
+   * slots, e.g. ["cycle","rest","cycle","rest"] for "UL Rest UL Rest", or
+   * ["cycle","cycle","rest"] for "PPL PPL Rest". Each "cycle" expands to
+   * the program's full day list (e.g. Upper, Lower) when displayed.
+   */
+  rotation: RotationSlot[] | null;
 }
