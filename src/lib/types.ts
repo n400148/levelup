@@ -278,7 +278,12 @@ export const SPLITS: Split[] = [
   "Shoulders & Arms",
 ];
 
-export type SplitProgram = "PPL" | "UPPER_LOWER" | "BRO_SPLIT" | "ARNOLD" | "FULL_BODY";
+export type SplitProgram = "PPL" | "UPPER_LOWER" | "BRO_SPLIT" | "ARNOLD" | "FULL_BODY" | "CUSTOM";
+
+export interface CustomSplit {
+  name: string;
+  days: Split[];
+}
 
 export interface WeightEntry {
   date: string;
@@ -429,4 +434,5 @@ export interface UserGoals {
   sex: Sex | null;
   birthYear: number | null;
   splitProgram: SplitProgram | null;
+  customSplit: CustomSplit | null;
 }

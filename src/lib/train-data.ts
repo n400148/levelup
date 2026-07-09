@@ -1,4 +1,4 @@
-import type { Split, SplitProgram } from "@/lib/types";
+import { SPLITS, type Split, type SplitProgram } from "@/lib/types";
 
 export type MuscleKey =
   | "chest"
@@ -72,6 +72,11 @@ export interface ProgramMeta {
 // add-on day regardless of which split program is active.
 export const UNIVERSAL_SPLITS: Split[] = ["Cardio", "Core"];
 
+// The building-block day types a custom split can be assembled from —
+// everything except the universal add-ons, which are already included
+// automatically.
+export const CUSTOMIZABLE_SPLITS: Split[] = SPLITS.filter((s) => !UNIVERSAL_SPLITS.includes(s));
+
 export const PROGRAMS: ProgramMeta[] = [
   { id: "PPL", label: "Push / Pull / Legs", blurb: "3-day rotation by movement pattern", days: ["Push", "Pull", "Legs"] },
   {
@@ -93,6 +98,7 @@ export const PROGRAMS: ProgramMeta[] = [
     days: ["Chest & Back", "Shoulders & Arms", "Legs"],
   },
   { id: "FULL_BODY", label: "Full Body", blurb: "Train everything each session", days: ["Full Body"] },
+  { id: "CUSTOM", label: "Custom Split", blurb: "Name it and pick your own days", days: [] },
 ];
 
 export function getProgram(id: SplitProgram | null): ProgramMeta | undefined {

@@ -33,6 +33,7 @@ const EMPTY_GOALS: UserGoals = {
   sex: null,
   birthYear: null,
   splitProgram: null,
+  customSplit: null,
 };
 
 export default function InsightsPage() {
