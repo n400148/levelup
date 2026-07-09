@@ -91,21 +91,35 @@ export default function InsightsPage() {
 
   function buildSummary(): string {
     const latestScan = scans[scans.length - 1];
-    const activePeptides = peptides.filter((p) => !p.endDate).map((p) => p.name);
-    const activeSupplements = supplements.filter((s) => !s.endDate).map((s) => s.name);
     const recentNutrition = nutrition.slice(-7);
     const avgCalories = recentNutrition.length
       ? Math.round(recentNutrition.reduce((s, e) => s + (e.calories ?? 0), 0) / recentNutrition.length)
       : null;
 
+    // Every peptide/supplement entry, oldest first, so a dose change (which
+    // ends the old entry and opens a new one — see Stack tab) shows up as a
+    // date-ranged timeline the model can line up against the weight log below.
+    const stackHistory = [...peptides, ...supplements]
+      .slice()
+      .sort((a, b) => (a.startDate ?? "").localeCompare(b.startDate ?? ""))
+      .map((item) => {
+        const range = `${item.startDate ?? "unknown"} to ${item.endDate ?? "ongoing"}`;
+        const dose = item.dose != null ? `${item.dose}${item.unit ?? ""}` : "no dose logged";
+        return `${item.name}: ${dose}${item.freq ? ` ${item.freq}` : ""} — ${range}${item.notes ? ` (${item.notes})` : ""}`;
+      });
+
+    const recentWeights = weights.slice(-14).map((w) => `${w.date}: ${w.weight}lb`);
+
     return [
       `Bodyweight: ${bodyweight ?? "unknown"} lb (${weights.length} entries logged).`,
       weightTrendInsight(weights).value,
+      recentWeights.length ? `Recent weigh-ins, oldest to newest: ${recentWeights.join(", ")}.` : "No recent weigh-ins.",
       trainingFrequencyInsight(logs).value,
       avgCalories ? `Averaging ${avgCalories} kcal/day over the last ${recentNutrition.length} logged days.` : "No recent nutrition logs.",
       latestScan ? latestScanInsight(scans).value : "No body scans logged.",
-      `Active peptides: ${activePeptides.join(", ") || "none"}.`,
-      `Active supplements: ${activeSupplements.join(", ") || "none"}.`,
+      stackHistory.length
+        ? `Peptide/supplement dose history, oldest to newest (a name appearing more than once means the dose changed):\n${stackHistory.join("\n")}`
+        : "No peptides or supplements logged.",
       `Primary goal: ${goals.primaryGoal ?? "not set"}.`,
       goals.liftGoals.length
         ? `Lift goals: ${goals.liftGoals.map((g) => `${g.exercise} ${g.currentMax}->${g.targetMax}${g.unit}`).join(", ")}.`

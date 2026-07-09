@@ -93,6 +93,32 @@ export default function StackPage() {
     await load();
   }
 
+  // Ends the current entry today and opens a new one with the new dose, so
+  // the change is preserved as history (visible in "Past" and fed to the AI
+  // Coach) instead of silently overwriting the old dose in place.
+  async function handleChangeDose(
+    item: StackItem,
+    next: { dose: number | null; unit: string | null; freq: string | null; note: string | null },
+  ) {
+    if (!item.id || !user) return;
+    const today = todayISO();
+    await supabase.from(table).update({ end_date: today }).eq("id", item.id);
+    const changeNote = `Changed from ${item.dose ?? "–"}${item.unit ?? ""} to ${next.dose ?? "–"}${next.unit ?? ""}${
+      next.note ? ` — ${next.note}` : ""
+    }`;
+    const newItem: StackItem = {
+      name: item.name,
+      dose: next.dose,
+      unit: next.unit,
+      freq: next.freq,
+      startDate: today,
+      endDate: null,
+      notes: changeNote,
+    };
+    await supabase.from(table).insert(stackItemToRow(user.id, newItem));
+    await load();
+  }
+
   const today = todayISO();
   const active = items.filter((i) => !i.endDate || i.endDate >= today);
   const past = items.filter((i) => i.endDate && i.endDate < today);
@@ -196,6 +222,7 @@ export default function StackPage() {
               onEnd={() => handleEnd(item.id)}
               onDelete={() => handleDelete(item.id)}
               onSave={(patch) => handleEdit(item.id, patch)}
+              onChangeDose={(next) => handleChangeDose(item, next)}
             />
           ))
         )}
@@ -211,6 +238,7 @@ export default function StackPage() {
               onEnd={() => handleEnd(item.id)}
               onDelete={() => handleDelete(item.id)}
               onSave={(patch) => handleEdit(item.id, patch)}
+              onChangeDose={(next) => handleChangeDose(item, next)}
             />
           ))}
         </Card>

@@ -13,15 +13,92 @@ export function StackCard({
   onEnd,
   onDelete,
   onSave,
+  onChangeDose,
 }: {
   item: StackItem;
   onEnd: () => void;
   onDelete: () => void;
   onSave: (patch: Partial<StackItem>) => void;
+  onChangeDose: (next: { dose: number | null; unit: string | null; freq: string | null; note: string | null }) => void;
 }) {
   const active = !item.endDate || item.endDate >= todayISO();
   const [editing, setEditing] = useState(false);
+  const [changingDose, setChangingDose] = useState(false);
   const [draft, setDraft] = useState(item);
+  const [newDose, setNewDose] = useState(item.dose?.toString() ?? "");
+  const [newUnit, setNewUnit] = useState(item.unit ?? DOSE_UNITS[0]);
+  const [newFreq, setNewFreq] = useState(item.freq ?? FREQUENCIES[0]);
+  const [doseNote, setDoseNote] = useState("");
+
+  if (changingDose) {
+    return (
+      <div className="bg-[var(--bg-inset)] border border-[var(--border)] rounded-lg p-3 mb-2.5 last:mb-0">
+        <p className="text-[11px] text-[var(--text-faint)] mb-2.5 leading-snug">
+          Closes out the current dose (ends today) and starts a new entry — so the change shows up in your history
+          and the AI Coach can line it up against your weight and training data.
+        </p>
+        <div className="font-mono text-[11px] text-[var(--text-mute)] mb-2.5">
+          Current: {item.dose ?? "–"} {item.unit ?? ""} · {item.freq ?? "–"}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>New Dose</Label>
+            <Input type="number" inputMode="decimal" value={newDose} onChange={(e) => setNewDose(e.target.value)} />
+          </div>
+          <div>
+            <Label>Unit</Label>
+            <Select value={newUnit} onChange={(e) => setNewUnit(e.target.value)}>
+              {DOSE_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+        <Label>Frequency</Label>
+        <Select value={newFreq} onChange={(e) => setNewFreq(e.target.value)}>
+          {FREQUENCIES.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </Select>
+        <Label>Note (optional)</Label>
+        <Input value={doseNote} onChange={(e) => setDoseNote(e.target.value)} placeholder="e.g. increased for plateau" />
+        <div className="flex gap-2 mt-3.5">
+          <Button
+            variant="primary"
+            full
+            onClick={() => {
+              onChangeDose({
+                dose: newDose ? parseFloat(newDose) : null,
+                unit: newUnit,
+                freq: newFreq,
+                note: doseNote.trim() || null,
+              });
+              setChangingDose(false);
+            }}
+          >
+            Save
+          </Button>
+          <Button
+            variant="secondary"
+            full
+            onClick={() => {
+              setNewDose(item.dose?.toString() ?? "");
+              setNewUnit(item.unit ?? DOSE_UNITS[0]);
+              setNewFreq(item.freq ?? FREQUENCIES[0]);
+              setDoseNote("");
+              setChangingDose(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (editing) {
     return (
@@ -135,6 +212,14 @@ export function StackCard({
         >
           Edit
         </button>
+        {active && (
+          <button
+            onClick={() => setChangingDose(true)}
+            className="tap-scale text-[10px] font-bold uppercase text-[var(--accent-2)]"
+          >
+            Change Dose
+          </button>
+        )}
         {active && (
           <button onClick={onEnd} className="tap-scale text-[10px] font-bold uppercase text-[var(--accent-2)]">
             End
