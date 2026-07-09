@@ -15,7 +15,7 @@ import { Disclaimer } from "@/components/ui/Disclaimer";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VialIcon } from "@/components/ui/EmptyStateIcons";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StackCard } from "@/components/stack/StackCard";
+import { StackGroup, type PastEntryInput } from "@/components/stack/StackGroup";
 
 export default function StackPage() {
   const { user } = useAuth();
@@ -119,9 +119,43 @@ export default function StackPage() {
     await load();
   }
 
+  // Lets a dose from before this substance was first logged (or a change
+  // that was never recorded at the time) be inserted directly, with its own
+  // start/end date range, instead of only ever being able to split off from
+  // today.
+  async function handleAddPastEntry(name: string, entry: PastEntryInput) {
+    if (!user) return;
+    const item: StackItem = {
+      name,
+      dose: entry.dose,
+      unit: entry.unit,
+      freq: entry.freq,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      notes: entry.notes,
+    };
+    await supabase.from(table).insert(stackItemToRow(user.id, item));
+    await load();
+  }
+
   const today = todayISO();
-  const active = items.filter((i) => !i.endDate || i.endDate >= today);
-  const past = items.filter((i) => i.endDate && i.endDate < today);
+
+  // Group every entry (active + past) by substance name so the history for
+  // one peptide collapses into a single expandable row instead of one card
+  // per dose change.
+  const groups = new Map<string, StackItem[]>();
+  for (const item of items) {
+    const group = groups.get(item.name) ?? [];
+    group.push(item);
+    groups.set(item.name, group);
+  }
+  const activeGroups: [string, StackItem[]][] = [];
+  const pastGroups: [string, StackItem[]][] = [];
+  for (const entry of groups) {
+    const [, group] = entry;
+    const hasActive = group.some((i) => !i.endDate || i.endDate >= today);
+    (hasActive ? activeGroups : pastGroups).push(entry);
+  }
 
   return (
     <div className="animate-rise">
@@ -212,33 +246,37 @@ export default function StackPage() {
             <Skeleton className="h-14 w-full mb-2" />
             <Skeleton className="h-14 w-full" />
           </>
-        ) : active.length === 0 ? (
+        ) : activeGroups.length === 0 ? (
           <EmptyState icon={<VialIcon />} text={`No active ${kind}s. Add one above to start tracking.`} />
         ) : (
-          active.map((item) => (
-            <StackCard
-              key={item.id}
-              item={item}
-              onEnd={() => handleEnd(item.id)}
-              onDelete={() => handleDelete(item.id)}
-              onSave={(patch) => handleEdit(item.id, patch)}
-              onChangeDose={(next) => handleChangeDose(item, next)}
+          activeGroups.map(([n, group]) => (
+            <StackGroup
+              key={n}
+              name={n}
+              items={group}
+              onEnd={handleEnd}
+              onDelete={handleDelete}
+              onSave={handleEdit}
+              onChangeDose={handleChangeDose}
+              onAddPast={(entry) => handleAddPastEntry(n, entry)}
             />
           ))
         )}
       </Card>
 
-      {past.length > 0 && (
+      {pastGroups.length > 0 && (
         <Card>
           <CardTitle>Past</CardTitle>
-          {past.map((item) => (
-            <StackCard
-              key={item.id}
-              item={item}
-              onEnd={() => handleEnd(item.id)}
-              onDelete={() => handleDelete(item.id)}
-              onSave={(patch) => handleEdit(item.id, patch)}
-              onChangeDose={(next) => handleChangeDose(item, next)}
+          {pastGroups.map(([n, group]) => (
+            <StackGroup
+              key={n}
+              name={n}
+              items={group}
+              onEnd={handleEnd}
+              onDelete={handleDelete}
+              onSave={handleEdit}
+              onChangeDose={handleChangeDose}
+              onAddPast={(entry) => handleAddPastEntry(n, entry)}
             />
           ))}
         </Card>
