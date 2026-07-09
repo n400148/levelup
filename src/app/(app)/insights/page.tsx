@@ -32,6 +32,7 @@ const EMPTY_GOALS: UserGoals = {
   liftGoals: [],
   sex: null,
   birthYear: null,
+  splitProgram: null,
 };
 
 export default function InsightsPage() {

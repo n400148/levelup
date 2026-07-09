@@ -253,7 +253,13 @@ export type Split =
   | "Cardio"
   | "Full Body"
   | "Upper"
-  | "Lower";
+  | "Lower"
+  | "Chest"
+  | "Back"
+  | "Shoulders"
+  | "Arms"
+  | "Chest & Back"
+  | "Shoulders & Arms";
 
 export const SPLITS: Split[] = [
   "Push",
@@ -264,7 +270,15 @@ export const SPLITS: Split[] = [
   "Full Body",
   "Upper",
   "Lower",
+  "Chest",
+  "Back",
+  "Shoulders",
+  "Arms",
+  "Chest & Back",
+  "Shoulders & Arms",
 ];
+
+export type SplitProgram = "PPL" | "UPPER_LOWER" | "BRO_SPLIT" | "ARNOLD" | "FULL_BODY";
 
 export interface WeightEntry {
   date: string;
@@ -414,4 +428,5 @@ export interface UserGoals {
   liftGoals: LiftGoal[];
   sex: Sex | null;
   birthYear: number | null;
+  splitProgram: SplitProgram | null;
 }
