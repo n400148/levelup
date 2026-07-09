@@ -94,7 +94,7 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
 
         <button
           onClick={addSet}
-          className="tap-scale w-full mt-1 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-2)] border border-dashed border-[rgba(221,160,107,0.3)] rounded-md py-1.5"
+          className="tap-scale w-full mt-1 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-2)] border border-dashed border-[rgba(111,141,255,0.3)] rounded-md py-1.5"
         >
           + Add Set
         </button>

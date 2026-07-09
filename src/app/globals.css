@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #14110d;
-  --bg-raised: #1e1a15;
-  --bg-inset: #26211a;
-  --bg-inset-2: #322c23;
-  --border: #362f26;
-  --border-soft: #2a251e;
-  --text: #f5f1ec;
-  --text-dim: #bdb3a6;
-  --text-mute: #96897a;
-  --text-faint: #7a6f62;
-  --accent: #c97c4a;
-  --accent-2: #dda06b;
-  --accent-grad: linear-gradient(135deg, #c97c4a, #dda06b);
-  --success: #7a9b76;
-  --danger: #a8493e;
+  --bg: #05070d;
+  --bg-raised: #0a0e1a;
+  --bg-inset: #10162a;
+  --bg-inset-2: #161d38;
+  --border: #202a4a;
+  --border-soft: #161d38;
+  --text: #eef1fb;
+  --text-dim: #b6bfe0;
+  --text-mute: #8791b8;
+  --text-faint: #5c6690;
+  --accent: #0437f2;
+  --accent-2: #6f8dff;
+  --accent-grad: linear-gradient(135deg, #0437f2, #6f8dff);
+  --success: #4fd1ae;
+  --danger: #ef6b64;
 }
 
 @theme inline {
@@ -93,8 +93,48 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(138, 126, 232, 0.35), transparent 65%);
+  background: linear-gradient(90deg, rgba(111, 141, 255, 0.3), transparent 65%);
+  z-index: 1;
 }
+
+/* Thin bright highlight riding the top outline only, drifting right to
+   left. Staggered per-card via --sheen-delay so it reads as one pass of
+   light moving down a stack rather than every card flashing at once. */
+.card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(90, 122, 255, 0.55) 35%,
+    rgba(140, 165, 255, 0.72) 50%,
+    rgba(90, 122, 255, 0.55) 65%,
+    transparent 100%
+  );
+  box-shadow: 0 0 5px 1px rgba(90, 122, 255, 0.35);
+  transform: translateX(430%);
+  animation: sheen-sweep 12s ease-in-out infinite;
+  animation-delay: var(--sheen-delay, 0s);
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes sheen-sweep {
+  0% { transform: translateX(430%); }
+  38% { transform: translateX(-130%); }
+  100% { transform: translateX(-130%); }
+}
+
+/* Auto-stagger the sheen across stacked cards sharing a parent, so light
+   appears to pass down the stack instead of every card sweeping in sync. */
+.card:nth-of-type(2)::after { animation-delay: 0.35s; }
+.card:nth-of-type(3)::after { animation-delay: 0.7s; }
+.card:nth-of-type(4)::after { animation-delay: 1.05s; }
+.card:nth-of-type(5)::after { animation-delay: 1.4s; }
 
 .tap-scale {
   transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 150ms ease;

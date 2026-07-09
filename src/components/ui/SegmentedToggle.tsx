@@ -16,7 +16,7 @@ export function SegmentedToggle<T extends string>({
           onClick={() => onChange(opt.value)}
           className={`tap-scale flex-1 rounded-lg py-2 text-[13px] font-semibold ${
             value === opt.value
-              ? "bg-[var(--accent)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_8px_-3px_rgba(201,124,74,0.45)]"
+              ? "bg-[var(--accent)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_8px_-3px_rgba(4,55,242,0.45)]"
               : "text-[var(--text-mute)]"
           }`}
         >

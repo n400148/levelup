@@ -2,8 +2,8 @@ import type { Rating } from "@/lib/health-ranges";
 
 const TONE_CLASSES: Record<Rating["tone"], string> = {
   low: "bg-[var(--bg-inset-2)] text-[var(--text-dim)]",
-  optimal: "bg-[rgba(122,155,118,0.15)] text-[var(--success)]",
-  high: "bg-[rgba(168,73,62,0.15)] text-[var(--danger)]",
+  optimal: "bg-[rgba(79,209,174,0.15)] text-[var(--success)]",
+  high: "bg-[rgba(239,107,100,0.15)] text-[var(--danger)]",
 };
 
 export function RatingBadge({ rating }: { rating: Rating }) {

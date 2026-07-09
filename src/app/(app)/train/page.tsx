@@ -195,7 +195,7 @@ export default function TrainPage() {
                 }}
                 className={`flex items-center gap-1 bg-[var(--bg-inset)] border rounded-lg pl-1 pr-3 py-2 mb-2 transition-shadow ${
                   dragging
-                    ? "border-[var(--accent)] shadow-[0_4px_16px_-4px_rgba(201,124,74,0.5)] z-10 relative"
+                    ? "border-[var(--accent)] shadow-[0_4px_16px_-4px_rgba(4,55,242,0.5)] z-10 relative"
                     : "border-[var(--border-soft)]"
                 }`}
               >
@@ -381,7 +381,7 @@ export default function TrainPage() {
                 className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${
                   slot === "Rest"
                     ? "bg-[var(--bg-inset-2)] text-[var(--text-mute)]"
-                    : "bg-[rgba(201,124,74,0.15)] text-[#dda06b]"
+                    : "bg-[rgba(4,55,242,0.15)] text-[#6f8dff]"
                 }`}
               >
                 {slot}

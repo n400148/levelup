@@ -39,7 +39,7 @@ function LoginForm() {
         <div className="text-[13px] text-[var(--text-mute)] mt-1.5">Decode your progress</div>
       </div>
       {confirmationFailed && (
-        <p className="text-[var(--danger)] text-[12px] text-center leading-relaxed mb-5 bg-[rgba(168,73,62,0.1)] border border-[rgba(168,73,62,0.25)] rounded-lg px-3 py-2.5">
+        <p className="text-[var(--danger)] text-[12px] text-center leading-relaxed mb-5 bg-[rgba(239,107,100,0.1)] border border-[rgba(239,107,100,0.25)] rounded-lg px-3 py-2.5">
           That confirmation link didn&apos;t work or has expired. Try signing up again, or sign in below if you&apos;ve
           already confirmed.
         </p>

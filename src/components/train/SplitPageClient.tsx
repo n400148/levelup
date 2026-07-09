@@ -266,7 +266,7 @@ export function SplitPageClient({ split }: { split: Split }) {
                   onClick={() => setSelectedDay(d)}
                   className={`tap-scale shrink-0 rounded-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide border ${
                     selectedDay === d
-                      ? "bg-[rgba(201,124,74,0.15)] border-[var(--accent)] text-[#dda06b]"
+                      ? "bg-[rgba(4,55,242,0.15)] border-[var(--accent)] text-[#6f8dff]"
                       : "bg-[var(--bg-inset)] border-[var(--border)] text-[var(--text-mute)]"
                   }`}
                 >
@@ -326,7 +326,7 @@ export function SplitPageClient({ split }: { split: Split }) {
               />
             </div>
             {resumable && (
-              <div className="bg-[rgba(201,124,74,0.1)] border border-[rgba(201,124,74,0.3)] rounded-lg px-3 py-2.5 mb-3">
+              <div className="bg-[rgba(4,55,242,0.1)] border border-[rgba(4,55,242,0.3)] rounded-lg px-3 py-2.5 mb-3">
                 <p className="text-[12px] text-[var(--text-dim)] mb-2">
                   You left an unfinished Day {resumable.day} workout in progress.
                 </p>
