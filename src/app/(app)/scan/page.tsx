@@ -45,7 +45,7 @@ const EMPTY_GOALS: UserGoals = {
   rotation: null,
 };
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = Number(todayISO().slice(0, 4));
 
 export default function ScanPage() {
   const { user } = useAuth();

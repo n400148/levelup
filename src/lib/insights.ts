@@ -1,6 +1,6 @@
 import type { BodyScan, NutritionEntry, StackItem, UserGoals, WeightEntry, WorkoutLog } from "@/lib/types";
 import { calculateMacros } from "@/lib/macros";
-import { daysBetween, todayISO } from "@/lib/date";
+import { daysBetween, isoDaysAgo, todayISO } from "@/lib/date";
 
 export interface InsightRow {
   label: string;
@@ -25,9 +25,7 @@ export function weightTrendInsight(weights: WeightEntry[]): InsightRow {
 }
 
 export function trainingFrequencyInsight(logs: WorkoutLog[]): InsightRow {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 7);
-  const cutoffIso = cutoff.toISOString().slice(0, 10);
+  const cutoffIso = isoDaysAgo(7);
   const distinctDates = new Set(logs.filter((l) => l.date >= cutoffIso).map((l) => l.date));
   const count = distinctDates.size;
   return {
