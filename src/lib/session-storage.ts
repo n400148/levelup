@@ -9,6 +9,7 @@ export interface SavedSession {
   exIndex: number;
   setIndex: number;
   collected: LoggedExercise[];
+  restEndAt: number | null;
 }
 
 export function loadSavedSession(): SavedSession | null {

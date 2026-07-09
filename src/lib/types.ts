@@ -297,6 +297,7 @@ export interface LoggedSet {
   reps: number;
   effort?: number;
   warmup?: boolean;
+  failed?: boolean;
 }
 
 export interface LoggedExercise {

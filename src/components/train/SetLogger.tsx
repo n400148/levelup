@@ -15,7 +15,7 @@ interface Props {
 export function SetLogger({ exercise, previousSets, progression, onChange, onRemoveExercise }: Props) {
   const sets = exercise.sets;
 
-  function updateSet(i: number, field: keyof LoggedSet, value: number | undefined) {
+  function updateSet(i: number, field: keyof LoggedSet, value: number | boolean | undefined) {
     const next = sets.map((s, idx) => (idx === i ? { ...s, [field]: value } : s));
     onChange(next);
   }
@@ -84,6 +84,14 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
                   placeholder="-"
                   className="w-full bg-transparent border border-[var(--border-soft)] rounded-md px-1 py-2 font-mono text-[11px] text-center text-[var(--text-dim)] outline-none"
                 />
+                <label className="tap-scale shrink-0 flex items-center justify-center w-5 h-5" title="Failed set">
+                  <input
+                    type="checkbox"
+                    checked={set.failed ?? false}
+                    onChange={(e) => updateSet(i, "failed", e.target.checked ? true : undefined)}
+                    className="w-4 h-4 accent-[var(--danger)]"
+                  />
+                </label>
                 <button onClick={() => removeSet(i)} className="tap-scale text-[var(--text-faint)] text-[13px]">
                   ×
                 </button>

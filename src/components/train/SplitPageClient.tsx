@@ -48,7 +48,7 @@ export function SplitPageClient({ split }: { split: Split }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionInitial, setSessionInitial] = useState<
-    { exIndex: number; setIndex: number; collected: LoggedExercise[] } | undefined
+    { exIndex: number; setIndex: number; collected: LoggedExercise[]; restEndAt: number | null } | undefined
   >(undefined);
   const [resumable, setResumable] = useState<SavedSession | null>(null);
 
@@ -213,7 +213,12 @@ export function SplitPageClient({ split }: { split: Split }) {
   function handleResumeSession() {
     if (!resumable) return;
     setSelectedDay(resumable.day);
-    setSessionInitial({ exIndex: resumable.exIndex, setIndex: resumable.setIndex, collected: resumable.collected });
+    setSessionInitial({
+      exIndex: resumable.exIndex,
+      setIndex: resumable.setIndex,
+      collected: resumable.collected,
+      restEndAt: resumable.restEndAt ?? null,
+    });
     setSessionActive(true);
     setResumable(null);
   }
@@ -223,7 +228,12 @@ export function SplitPageClient({ split }: { split: Split }) {
     setResumable(null);
   }
 
-  function handleSessionProgress(progress: { exIndex: number; setIndex: number; collected: LoggedExercise[] }) {
+  function handleSessionProgress(progress: {
+    exIndex: number;
+    setIndex: number;
+    collected: LoggedExercise[];
+    restEndAt: number | null;
+  }) {
     persistWorkoutProgress({ split, day: selectedDay, date: todayISO(), ...progress });
   }
 

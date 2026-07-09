@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { LoggedExercise, LoggedSet, PlanExercise } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
@@ -9,6 +9,7 @@ interface Progress {
   exIndex: number;
   setIndex: number;
   collected: LoggedExercise[];
+  restEndAt: number | null;
 }
 
 interface HistoryEntry {
@@ -40,8 +41,13 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [effort, setEffort] = useState("");
-  const [restRemaining, setRestRemaining] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [failed, setFailed] = useState(false);
+  // Rest is tracked as a target end timestamp rather than a decrementing
+  // counter, so it keeps counting real elapsed time (and can be persisted
+  // and restored) instead of drifting or resetting when the tab is
+  // backgrounded or the workout is resumed later.
+  const [restEndAt, setRestEndAt] = useState<number | null>(initial?.restEndAt ?? null);
+  const [, forceTick] = useState(0);
 
   const ex = exercises[exIndex];
   const warmupCount = ex?.warmupSets ?? 0;
@@ -51,44 +57,43 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   const setNumberInPhase = isWarmup ? setIndex + 1 : setIndex - warmupCount + 1;
   const previousSets = ex ? previousSetsFor(ex.name) : null;
   const previousForThisSet = previousSets?.[setIndex] ?? null;
+  const restRemaining = restEndAt ? Math.max(0, Math.ceil((restEndAt - Date.now()) / 1000)) : 0;
   const resting = restRemaining > 0;
 
   const isLastSetOfWorkout = exIndex === exercises.length - 1 && setIndex === totalCount - 1;
 
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    if (restEndAt === null) return;
+    const id = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [restEndAt]);
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible") forceTick((t) => t + 1);
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   useEffect(() => {
-    onProgress?.({ exIndex, setIndex, collected });
+    onProgress?.({ exIndex, setIndex, collected, restEndAt });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exIndex, setIndex, collected]);
+  }, [exIndex, setIndex, collected, restEndAt]);
 
   function startRest(seconds: number) {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setRestRemaining(seconds);
-    intervalRef.current = setInterval(() => {
-      setRestRemaining((prev) => {
-        if (prev <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    setRestEndAt(Date.now() + seconds * 1000);
   }
 
   function skipRest() {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setRestRemaining(0);
+    setRestEndAt(null);
   }
 
   function advance(justLoggedRest: boolean) {
     setWeight("");
     setReps("");
     setEffort("");
+    setFailed(false);
 
     if (justLoggedRest && ex?.restSeconds && !isLastSetOfWorkout) {
       startRest(ex.restSeconds);
@@ -108,7 +113,6 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   }
 
   function finish(finalCollected: LoggedExercise[]) {
-    if (intervalRef.current) clearInterval(intervalRef.current);
     onFinish(finalCollected);
   }
 
@@ -118,6 +122,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
       reps: parseInt(reps, 10) || 0,
       effort: effort ? parseInt(effort, 10) : undefined,
       warmup: isWarmup,
+      failed: failed || undefined,
     };
     setCollected((prev) => {
       const idx = prev.findIndex((e) => e.name === ex.name);
@@ -139,8 +144,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
     if (history.length === 0) return;
     const last = history[history.length - 1];
     setHistory((prev) => prev.slice(0, -1));
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setRestRemaining(0);
+    setRestEndAt(null);
     setExIndex(last.exIndex);
     setSetIndex(last.setIndex);
 
@@ -161,10 +165,12 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
       setWeight(last.loggedSet.weight ? String(last.loggedSet.weight) : "");
       setReps(last.loggedSet.reps ? String(last.loggedSet.reps) : "");
       setEffort(last.loggedSet.effort ? String(last.loggedSet.effort) : "");
+      setFailed(last.loggedSet.failed ?? false);
     } else {
       setWeight("");
       setReps("");
       setEffort("");
+      setFailed(false);
     }
   }
 
@@ -265,6 +271,16 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
               onChange={(e) => setEffort(e.target.value)}
               placeholder="-"
             />
+
+            <label className="flex items-center gap-2 mt-3.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={failed}
+                onChange={(e) => setFailed(e.target.checked)}
+                className="w-4 h-4 shrink-0 accent-[var(--danger)]"
+              />
+              <span className="text-[12px] font-semibold text-[var(--text-dim)]">Failed set (missed target reps)</span>
+            </label>
 
             <div className="flex gap-2 mt-5">
               {history.length > 0 && (

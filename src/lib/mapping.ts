@@ -177,6 +177,7 @@ function sanitizeSet(raw: unknown): LoggedSet | null {
     reps: Number.isFinite(reps) ? reps : 0,
     effort: effort !== undefined && Number.isFinite(effort) ? effort : undefined,
     warmup: s.warmup === true,
+    failed: s.failed === true,
   };
 }
 
