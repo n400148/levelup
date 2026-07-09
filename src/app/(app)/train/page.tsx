@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -22,6 +22,15 @@ import { Chip } from "@/components/ui/Chip";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+
+interface DraftSlot {
+  id: string;
+  slot: RotationSlot;
+}
+
+function toDraftSlots(slots: RotationSlot[]): DraftSlot[] {
+  return slots.map((slot) => ({ id: crypto.randomUUID(), slot }));
+}
 
 const EMPTY_GOALS: UserGoals = {
   primaryGoal: null,
@@ -47,7 +56,9 @@ export default function TrainPage() {
   const [customName, setCustomName] = useState("");
   const [customDays, setCustomDays] = useState<Split[]>([]);
   const [rotationProgram, setRotationProgram] = useState<SplitProgram | null>(null);
-  const [rotationDraft, setRotationDraft] = useState<RotationSlot[]>(DEFAULT_ROTATION);
+  const [rotationDraft, setRotationDraft] = useState<DraftSlot[]>(toDraftSlots(DEFAULT_ROTATION));
+  const [draggingSlotId, setDraggingSlotId] = useState<string | null>(null);
+  const slotRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     Promise.all([
@@ -94,21 +105,53 @@ export default function TrainPage() {
 
   function startRotationBuilder(id: SplitProgram) {
     const existing = goals.splitProgram === id ? goals.rotation : null;
-    setRotationDraft(existing && existing.length > 0 ? existing : DEFAULT_ROTATION);
+    setRotationDraft(toDraftSlots(existing && existing.length > 0 ? existing : DEFAULT_ROTATION));
     setRotationProgram(id);
   }
 
   function addRotationSlot(slot: RotationSlot) {
-    setRotationDraft((prev) => [...prev, slot]);
+    setRotationDraft((prev) => [...prev, { id: crypto.randomUUID(), slot }]);
   }
 
-  function removeRotationSlot(index: number) {
-    setRotationDraft((prev) => prev.filter((_, i) => i !== index));
+  function removeRotationSlot(id: string) {
+    setRotationDraft((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  function handleSlotDragStart(e: React.PointerEvent<HTMLButtonElement>, id: string) {
+    setDraggingSlotId(id);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handleSlotDragMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!draggingSlotId) return;
+    const currentIndex = rotationDraft.findIndex((s) => s.id === draggingSlotId);
+    for (const [id, el] of slotRefs.current) {
+      if (id === draggingSlotId) continue;
+      const rect = el.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        const targetIndex = rotationDraft.findIndex((s) => s.id === id);
+        if (targetIndex !== -1 && targetIndex !== currentIndex) {
+          const next = [...rotationDraft];
+          const [moved] = next.splice(currentIndex, 1);
+          next.splice(targetIndex, 0, moved);
+          setRotationDraft(next);
+        }
+        break;
+      }
+    }
+  }
+
+  function handleSlotDragEnd() {
+    setDraggingSlotId(null);
   }
 
   async function saveRotation() {
-    if (!user || !rotationProgram || !rotationDraft.some((s) => s === "cycle")) return;
-    const next: UserGoals = { ...goals, splitProgram: rotationProgram, rotation: rotationDraft };
+    if (!user || !rotationProgram || !rotationDraft.some((s) => s.slot === "cycle")) return;
+    const next: UserGoals = {
+      ...goals,
+      splitProgram: rotationProgram,
+      rotation: rotationDraft.map((s) => s.slot),
+    };
     setGoals(next);
     setRotationProgram(null);
     setChoosing(false);
@@ -141,23 +184,45 @@ export default function TrainPage() {
             Build the pattern one block at a time — e.g. Cycle, Rest, Cycle, Rest for &ldquo;{draftDays.join("/")}{" "}
             Rest {draftDays.join("/")} Rest&rdquo;.
           </p>
-          {rotationDraft.map((slot, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg px-3 py-2.5 mb-2"
-            >
-              <span className="flex-1 text-[12.5px] font-semibold">
-                {slot === "rest" ? "Rest Day" : draftDays.join(" · ")}
-              </span>
-              <button
-                onClick={() => removeRotationSlot(i)}
-                className="tap-scale text-[var(--danger)] text-[16px] leading-none px-1"
-                aria-label="Remove"
+          {rotationDraft.map((draft) => {
+            const dragging = draggingSlotId === draft.id;
+            return (
+              <div
+                key={draft.id}
+                ref={(el) => {
+                  if (el) slotRefs.current.set(draft.id, el);
+                  else slotRefs.current.delete(draft.id);
+                }}
+                className={`flex items-center gap-1 bg-[var(--bg-inset)] border rounded-lg pl-1 pr-3 py-2 mb-2 transition-shadow ${
+                  dragging
+                    ? "border-[var(--accent)] shadow-[0_4px_16px_-4px_rgba(201,124,74,0.5)] z-10 relative"
+                    : "border-[var(--border-soft)]"
+                }`}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  onPointerDown={(e) => handleSlotDragStart(e, draft.id)}
+                  onPointerMove={handleSlotDragMove}
+                  onPointerUp={handleSlotDragEnd}
+                  onPointerCancel={handleSlotDragEnd}
+                  aria-label="Drag to reorder"
+                  className="tap-scale shrink-0 w-8 h-8 flex items-center justify-center text-[var(--text-faint)] text-[16px] touch-none cursor-grab active:cursor-grabbing"
+                >
+                  ⠿
+                </button>
+                <span className="flex-1 text-[12.5px] font-semibold">
+                  {draft.slot === "rest" ? "Rest Day" : draftDays.join(" · ")}
+                </span>
+                <button
+                  onClick={() => removeRotationSlot(draft.id)}
+                  className="tap-scale text-[var(--danger)] text-[16px] leading-none px-1"
+                  aria-label="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
           <div className="flex gap-2 mt-3">
             <Button variant="secondary" full onClick={() => addRotationSlot("cycle")}>
               + Cycle
@@ -173,7 +238,7 @@ export default function TrainPage() {
             <Button
               variant="primary"
               full
-              disabled={!rotationDraft.some((s) => s === "cycle")}
+              disabled={!rotationDraft.some((s) => s.slot === "cycle")}
               onClick={saveRotation}
             >
               Save
