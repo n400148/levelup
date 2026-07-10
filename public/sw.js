@@ -1,4 +1,4 @@
-const CACHE = "liftcipher-v2";
+const CACHE = "liftcipher-v3";
 
 // Hashed build output (filename changes on every deploy) — safe to serve
 // straight from cache forever, no network round-trip needed even on the
@@ -30,7 +30,7 @@ self.addEventListener("fetch", (event) => {
           cached ||
           fetch(event.request).then((response) => {
             const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+            event.waitUntil(caches.open(CACHE).then((cache) => cache.put(event.request, copy)));
             return response;
           }),
       ),
@@ -38,19 +38,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else (HTML shell, manifest): stale-while-revalidate. Render
-  // instantly from cache on reopen instead of blocking on the network, then
-  // quietly refresh the cache in the background for next time.
+  // Everything else (HTML shell, manifest): network-first. This app ships
+  // fixes frequently, and a previous stale-while-revalidate strategy here
+  // meant every visit could show what was cached from the *previous* visit,
+  // one deploy behind — worse, the background cache refresh wasn't wrapped
+  // in waitUntil(), so mobile browsers could suspend the service worker
+  // before that write ever completed, leaving a device stuck on a much
+  // older snapshot indefinitely rather than just one visit behind. Always
+  // go to the network first when online; only fall back to cache (for
+  // offline use) if the network fetch fails.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    }),
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then((cache) => cache.put(event.request, copy)));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });
