@@ -84,7 +84,7 @@ export function SetLogger({ exercise, previousSets, progression, onChange, onRem
                   placeholder="-"
                   className="w-full bg-transparent border border-[var(--border-soft)] rounded-md px-1 py-2 font-mono text-[11px] text-center text-[var(--text-dim)] outline-none"
                 />
-                <label className="tap-scale shrink-0 flex items-center justify-center w-5 h-5" title="Failed set">
+                <label className="tap-scale shrink-0 flex items-center justify-center w-5 h-5" title="Trained to failure">
                   <input
                     type="checkbox"
                     checked={set.failed ?? false}

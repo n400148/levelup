@@ -316,7 +316,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
                 onChange={(e) => setFailed(e.target.checked)}
                 className="w-4 h-4 shrink-0 accent-[var(--danger)]"
               />
-              <span className="text-[12px] font-semibold text-[var(--text-dim)]">Failed set (missed target reps)</span>
+              <span className="text-[12px] font-semibold text-[var(--text-dim)]">Trained to failure</span>
             </label>
 
             <div className="flex gap-2 mt-5">
