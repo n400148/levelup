@@ -48,7 +48,8 @@ export function SplitPageClient({ split }: { split: Split }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionInitial, setSessionInitial] = useState<
-    { exIndex: number; setIndex: number; collected: LoggedExercise[]; restEndAt: number | null } | undefined
+    | { exIndex: number; setIndex: number; subIndex: 0 | 1; collected: LoggedExercise[]; restEndAt: number | null }
+    | undefined
   >(undefined);
   const [resumable, setResumable] = useState<SavedSession | null>(null);
 
@@ -92,7 +93,20 @@ export function SplitPageClient({ split }: { split: Split }) {
       setSessionExercises(existing.exercises);
     } else {
       const planExercises = dayPlan[selectedDay] ?? [];
-      setSessionExercises(planExercises.map((pe) => ({ name: pe.name, sets: [{ weight: 0, reps: 0 }] })));
+      // A superset is one plan entry with a paired name tucked inside it, so
+      // it needs to expand into two rows here — manual logging tracks each
+      // exercise's sets independently regardless of how they're paired up
+      // in the guided workout.
+      setSessionExercises(
+        planExercises.flatMap((pe) =>
+          pe.pairedWith
+            ? [
+                { name: pe.name, sets: [{ weight: 0, reps: 0 }] },
+                { name: pe.pairedWith, sets: [{ weight: 0, reps: 0 }] },
+              ]
+            : [{ name: pe.name, sets: [{ weight: 0, reps: 0 }] }],
+        ),
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, selectedDay, logDate, logs, split]);
@@ -216,6 +230,7 @@ export function SplitPageClient({ split }: { split: Split }) {
     setSessionInitial({
       exIndex: resumable.exIndex,
       setIndex: resumable.setIndex,
+      subIndex: resumable.subIndex ?? 0,
       collected: resumable.collected,
       restEndAt: resumable.restEndAt ?? null,
     });
@@ -231,6 +246,7 @@ export function SplitPageClient({ split }: { split: Split }) {
   function handleSessionProgress(progress: {
     exIndex: number;
     setIndex: number;
+    subIndex: 0 | 1;
     collected: LoggedExercise[];
     restEndAt: number | null;
   }) {

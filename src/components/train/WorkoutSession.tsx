@@ -8,6 +8,7 @@ import { Input, Label } from "@/components/ui/Input";
 interface Progress {
   exIndex: number;
   setIndex: number;
+  subIndex: 0 | 1;
   collected: LoggedExercise[];
   restEndAt: number | null;
 }
@@ -15,6 +16,7 @@ interface Progress {
 interface HistoryEntry {
   exIndex: number;
   setIndex: number;
+  subIndex: 0 | 1;
   loggedSet: LoggedSet | null;
 }
 
@@ -36,6 +38,10 @@ function formatClock(totalSeconds: number): string {
 export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel, initial, onProgress }: Props) {
   const [exIndex, setExIndex] = useState(initial?.exIndex ?? 0);
   const [setIndex, setSetIndex] = useState(initial?.setIndex ?? 0);
+  // Which half of a superset pair is currently up: 0 is the first exercise
+  // (or the only one, when not a superset), 1 is the partner that's done
+  // immediately after, before the round's rest.
+  const [subIndex, setSubIndex] = useState<0 | 1>(initial?.subIndex ?? 0);
   const [collected, setCollected] = useState<LoggedExercise[]>(initial?.collected ?? []);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [weight, setWeight] = useState("");
@@ -50,17 +56,20 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   const [, forceTick] = useState(0);
 
   const ex = exercises[exIndex];
+  const isSuperset = !!ex?.pairedWith;
+  const currentName = subIndex === 1 ? (ex?.pairedWith ?? ex?.name ?? "") : ex?.name ?? "";
   const warmupCount = ex?.warmupSets ?? 0;
   const workingCount = ex?.targetSets ?? 3;
   const totalCount = warmupCount + workingCount;
   const isWarmup = setIndex < warmupCount;
   const setNumberInPhase = isWarmup ? setIndex + 1 : setIndex - warmupCount + 1;
-  const previousSets = ex ? previousSetsFor(ex.name) : null;
+  const previousSets = ex ? previousSetsFor(currentName) : null;
   const previousForThisSet = previousSets?.[setIndex] ?? null;
   const restRemaining = restEndAt ? Math.max(0, Math.ceil((restEndAt - Date.now()) / 1000)) : 0;
   const resting = restRemaining > 0;
 
-  const isLastSetOfWorkout = exIndex === exercises.length - 1 && setIndex === totalCount - 1;
+  const isLastSetOfWorkout =
+    exIndex === exercises.length - 1 && setIndex === totalCount - 1 && (!isSuperset || subIndex === 1);
 
   useEffect(() => {
     if (restEndAt === null) return;
@@ -77,9 +86,9 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   }, []);
 
   useEffect(() => {
-    onProgress?.({ exIndex, setIndex, collected, restEndAt });
+    onProgress?.({ exIndex, setIndex, subIndex, collected, restEndAt });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exIndex, setIndex, collected, restEndAt]);
+  }, [exIndex, setIndex, subIndex, collected, restEndAt]);
 
   function startRest(seconds: number) {
     setRestEndAt(Date.now() + seconds * 1000);
@@ -89,27 +98,44 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
     setRestEndAt(null);
   }
 
-  function advance(justLoggedRest: boolean) {
+  // collectedForFinish lets logSet() pass the just-computed array through
+  // for the case where this call finishes the workout — setCollected()
+  // only queues a state update, so reading the `collected` closure variable
+  // in that same synchronous call would silently drop whatever was just
+  // logged from the saved workout.
+  function advance(justLoggedRest: boolean, collectedForFinish: LoggedExercise[] = collected) {
     setWeight("");
     setReps("");
     setEffort("");
     setFailed(false);
+
+    // Superset: go straight to the paired exercise for this same round —
+    // no rest until both halves of the round are done.
+    if (isSuperset && subIndex === 0) {
+      setSubIndex(1);
+      return;
+    }
 
     if (justLoggedRest && ex?.restSeconds && !isLastSetOfWorkout) {
       startRest(ex.restSeconds);
     }
 
     if (setIndex + 1 < totalCount) {
+      setSubIndex(0);
       setSetIndex(setIndex + 1);
       return;
     }
     if (exIndex + 1 < exercises.length) {
+      setSubIndex(0);
       setExIndex(exIndex + 1);
       setSetIndex(0);
       return;
     }
-    // workout complete
-    finish(collected);
+    // workout complete — leave exIndex/setIndex/subIndex as-is; nothing
+    // downstream depends on them once onFinish has been called, and
+    // resetting them here could flash a stale earlier screen while the
+    // parent's finish handler (which may be async) is still in flight.
+    finish(collectedForFinish);
   }
 
   function finish(finalCollected: LoggedExercise[]) {
@@ -124,19 +150,18 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
       warmup: isWarmup,
       failed: failed || undefined,
     };
-    setCollected((prev) => {
-      const idx = prev.findIndex((e) => e.name === ex.name);
-      if (idx === -1) return [...prev, { name: ex.name, sets: [newSet] }];
-      const next = [...prev];
-      next[idx] = { ...next[idx], sets: [...next[idx].sets, newSet] };
-      return next;
-    });
-    setHistory((prev) => [...prev, { exIndex, setIndex, loggedSet: newSet }]);
-    advance(true);
+    const idx = collected.findIndex((e) => e.name === currentName);
+    const nextCollected =
+      idx === -1
+        ? [...collected, { name: currentName, sets: [newSet] }]
+        : collected.map((e, i) => (i === idx ? { ...e, sets: [...e.sets, newSet] } : e));
+    setCollected(nextCollected);
+    setHistory((prev) => [...prev, { exIndex, setIndex, subIndex, loggedSet: newSet }]);
+    advance(true, nextCollected);
   }
 
   function skipSet() {
-    setHistory((prev) => [...prev, { exIndex, setIndex, loggedSet: null }]);
+    setHistory((prev) => [...prev, { exIndex, setIndex, subIndex, loggedSet: null }]);
     advance(false);
   }
 
@@ -147,9 +172,11 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
     setRestEndAt(null);
     setExIndex(last.exIndex);
     setSetIndex(last.setIndex);
+    setSubIndex(last.subIndex);
 
     if (last.loggedSet) {
-      const exName = exercises[last.exIndex].name;
+      const lastEx = exercises[last.exIndex];
+      const exName = last.subIndex === 1 ? (lastEx.pairedWith ?? lastEx.name) : lastEx.name;
       setCollected((prev) => {
         const idx = prev.findIndex((e) => e.name === exName);
         if (idx === -1) return prev;
@@ -209,7 +236,17 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
       </div>
 
       <div className="card p-5">
-        <div className="font-display text-[19px] font-semibold mb-1">{ex.name}</div>
+        {isSuperset && (
+          <div className="eyebrow mb-1.5">
+            Superset · {subIndex === 0 ? "1 of 2" : "2 of 2"}
+          </div>
+        )}
+        <div className="font-display text-[19px] font-semibold mb-1">{currentName}</div>
+        {isSuperset && !resting && (
+          <div className="text-[11.5px] text-[var(--text-faint)] mb-1">
+            {subIndex === 0 ? `Then: ${ex.pairedWith}` : `After: ${ex.name}`}
+          </div>
+        )}
         <div className="font-mono text-[12.5px] text-[var(--text-mute)] mb-5">
           {isWarmup ? `Warmup set ${setNumberInPhase} of ${warmupCount}` : `Set ${setNumberInPhase} of ${workingCount}`}
         </div>
@@ -292,7 +329,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
                 Skip Set
               </Button>
               <Button variant="primary" full onClick={logSet}>
-                {isLastSetOfWorkout ? "Finish" : "Log Set"}
+                {isLastSetOfWorkout ? "Finish" : isSuperset && subIndex === 0 ? "Log & Next Exercise" : "Log Set"}
               </Button>
             </div>
           </>

@@ -8,6 +8,7 @@ export interface SavedSession {
   date: string;
   exIndex: number;
   setIndex: number;
+  subIndex: 0 | 1;
   collected: LoggedExercise[];
   restEndAt: number | null;
 }

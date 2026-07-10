@@ -25,6 +25,8 @@ export function PlanEditor({
 }) {
   const [custom, setCustom] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [supersetTarget, setSupersetTarget] = useState<string | null>(null);
+  const [supersetDraft, setSupersetDraft] = useState("");
   const [order, setOrder] = useState<PlanExercise[]>(exercises);
   const [draggingName, setDraggingName] = useState<string | null>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -70,7 +72,14 @@ export function PlanEditor({
     setCustom("");
   }
 
-  const planned = new Set(order.map((e) => e.name.toLowerCase()));
+  const planned = new Set(
+    order.flatMap((e) => [e.name.toLowerCase(), e.pairedWith?.toLowerCase()].filter((n): n is string => !!n)),
+  );
+
+  function saveSuperset(name: string) {
+    if (supersetDraft.trim()) onConfigure(name, { pairedWith: supersetDraft.trim() });
+    setSupersetTarget(null);
+  }
 
   return (
     <div>
@@ -114,6 +123,17 @@ export function PlanEditor({
                     >
                       {open ? "Done" : "Configure"}
                     </button>
+                    {!ex.pairedWith && (
+                      <button
+                        onClick={() => {
+                          setSupersetTarget(supersetTarget === ex.name ? null : ex.name);
+                          setSupersetDraft("");
+                        }}
+                        className="tap-scale text-[var(--accent-2)] text-[10px] font-bold uppercase whitespace-nowrap"
+                      >
+                        + Superset
+                      </button>
+                    )}
                     <button
                       onClick={() => onRemove(ex.name)}
                       className="tap-scale text-[var(--danger)] text-[10px] font-bold uppercase"
@@ -122,6 +142,40 @@ export function PlanEditor({
                     </button>
                   </div>
                 </div>
+                {ex.pairedWith && (
+                  <div className="pl-11 pr-3 pb-2.5 -mt-1 flex items-center gap-1.5">
+                    <span className="text-[9.5px] font-bold uppercase tracking-wide text-[var(--accent-2)]">
+                      Superset →
+                    </span>
+                    <span className="text-[12px] font-semibold text-[var(--text-dim)] truncate">{ex.pairedWith}</span>
+                    <button
+                      onClick={() => onConfigure(ex.name, { pairedWith: undefined })}
+                      aria-label="Remove superset"
+                      className="tap-scale text-[var(--danger)] text-[13px] leading-none px-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                {supersetTarget === ex.name && (
+                  <div className="px-3 pb-3 border-t border-[var(--border-soft)] pt-2.5">
+                    <Label>Superset with</Label>
+                    <Input
+                      value={supersetDraft}
+                      onChange={(e) => setSupersetDraft(e.target.value)}
+                      placeholder="e.g. Short Head Cable Curl"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 mt-2.5">
+                      <Button variant="primary" size="sm" full onClick={() => saveSuperset(ex.name)}>
+                        Save
+                      </Button>
+                      <Button variant="secondary" size="sm" full onClick={() => setSupersetTarget(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {!open && (ex.targetSets || ex.warmupSets || ex.restSeconds) && (
                   <div className="pl-11 pr-3 pb-2.5 -mt-1 font-mono text-[11px] text-[var(--text-faint)]">
                     {ex.warmupSets ? `${ex.warmupSets} warmup · ` : ""}

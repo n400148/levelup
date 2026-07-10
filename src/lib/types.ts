@@ -321,6 +321,9 @@ export interface PlanExercise {
   warmupSets?: number;
   /** Rest between sets in a guided session, in seconds. Omit for no timer. */
   restSeconds?: number;
+  /** Superset partner — done immediately after this exercise each round,
+   * with the round's rest only taken after both are done. */
+  pairedWith?: string;
 }
 
 export type DayPlan = Record<string, PlanExercise[]>; // dayLabel -> exercises

@@ -232,6 +232,7 @@ function sanitizePlanExercise(raw: unknown): PlanExercise | null {
       targetSets: Number.isFinite(targetSets) && targetSets > 0 ? targetSets : undefined,
       warmupSets: Number.isFinite(warmupSets) && warmupSets > 0 ? warmupSets : undefined,
       restSeconds: Number.isFinite(restSeconds) && restSeconds > 0 ? restSeconds : undefined,
+      pairedWith: typeof r.pairedWith === "string" && r.pairedWith.length > 0 ? r.pairedWith : undefined,
     };
   }
   return null;
