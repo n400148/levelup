@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { StackItem } from "@/lib/types";
-import { formatShortDate, todayISO } from "@/lib/date";
+import { formatShortDate, todayISO, useTodayISO } from "@/lib/date";
 import { Tag } from "@/components/ui/Chip";
 import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +25,7 @@ function AddPastEntryForm({ onCancel, onSave }: { onCancel: () => void; onSave: 
   const [entryStart, setEntryStart] = useState(todayISO());
   const [entryEnd, setEntryEnd] = useState("");
   const [notes, setNotes] = useState("");
+  const maxDate = useTodayISO();
 
   return (
     <div className="bg-[var(--bg-inset-2)] border border-[var(--border)] rounded-lg p-3 mt-2">
@@ -59,14 +60,14 @@ function AddPastEntryForm({ onCancel, onSave }: { onCancel: () => void; onSave: 
       <div className="grid grid-cols-2 gap-2">
         <div>
           <Label>Start Date</Label>
-          <Input type="date" value={entryStart} max={todayISO()} onChange={(e) => setEntryStart(e.target.value)} />
+          <Input type="date" value={entryStart} max={maxDate} onChange={(e) => setEntryStart(e.target.value)} />
         </div>
         <div>
           <Label>End Date</Label>
           <Input
             type="date"
             value={entryEnd}
-            max={todayISO()}
+            max={maxDate}
             onChange={(e) => setEntryEnd(e.target.value)}
             placeholder="Leave blank if still ongoing"
           />

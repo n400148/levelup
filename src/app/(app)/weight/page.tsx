@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { weightFromRow, weightToRow } from "@/lib/mapping";
 import type { WeightEntry } from "@/lib/types";
-import { todayISO, formatShortDate, isoDaysAgo } from "@/lib/date";
+import { todayISO, useTodayISO, formatShortDate, isoDaysAgo } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { StatRow, StatBlock } from "@/components/ui/StatBlock";
 import { Input, Label } from "@/components/ui/Input";
@@ -32,6 +32,7 @@ export default function WeightPage() {
   const [entries, setEntries] = useState<WeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(todayISO());
+  const maxDate = useTodayISO();
   const [weight, setWeight] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ export default function WeightPage() {
         <form onSubmit={handleLog} className="flex gap-2 items-end">
           <div className="flex-1">
             <Label>Date</Label>
-            <Input type="date" value={date} max={todayISO()} onChange={(e) => setDate(e.target.value)} />
+            <Input type="date" value={date} max={maxDate} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div className="flex-1">
             <Label>Weight (lb)</Label>

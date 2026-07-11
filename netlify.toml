@@ -25,3 +25,17 @@
 
 [build.processing.images]
   compress = false
+
+# The service worker script must never be cached by the browser's own HTTP
+# cache — that cache sits in front of the service worker entirely, so if the
+# browser considers its cached copy of sw.js still fresh, it will never even
+# check the network for a newer one, and every fix shipped through the
+# service worker (including past fixes to this exact file) silently never
+# reaches an already-installed device. This is the actual root cause behind
+# fixes appearing to "not take" — no explicit header meant this was left to
+# Netlify's default static-asset caching, which does not treat sw.js as a
+# special case.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

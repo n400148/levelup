@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { bodyScanFromRow, bodyScanToRow } from "@/lib/mapping";
 import type { AdvancedScanData, BodyScan, ScanDevice, Sex, UserGoals } from "@/lib/types";
 import { SCAN_DEVICES, formatErrorRange } from "@/lib/devices";
-import { todayISO, formatShortDate } from "@/lib/date";
+import { todayISO, useTodayISO, formatShortDate } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Input, Label, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -45,8 +45,6 @@ const EMPTY_GOALS: UserGoals = {
   rotation: null,
 };
 
-const CURRENT_YEAR = Number(todayISO().slice(0, 4));
-
 export default function ScanPage() {
   const { user } = useAuth();
   const supabase = createClient();
@@ -57,6 +55,8 @@ export default function ScanPage() {
   const [saving, setSaving] = useState(false);
 
   const [date, setDate] = useState(todayISO());
+  const maxDate = useTodayISO();
+  const currentYear = Number(maxDate.slice(0, 4));
   const [device, setDevice] = useState<ScanDevice>("BIA_SCALE");
   const [deviceLabel, setDeviceLabel] = useState("");
   const [weight, setWeight] = useState("");
@@ -171,7 +171,7 @@ export default function ScanPage() {
               type="number"
               inputMode="numeric"
               min={1900}
-              max={CURRENT_YEAR}
+              max={currentYear}
               value={goals.birthYear ?? ""}
               placeholder="1998"
               onChange={(e) => updateProfile({ birthYear: e.target.value ? parseInt(e.target.value, 10) : null })}
@@ -188,7 +188,7 @@ export default function ScanPage() {
         <CardTitle>Log Body Scan</CardTitle>
         <form onSubmit={handleSave}>
           <Label>Date</Label>
-          <Input type="date" value={date} max={todayISO()} onChange={(e) => setDate(e.target.value)} />
+          <Input type="date" value={date} max={maxDate} onChange={(e) => setDate(e.target.value)} />
           <Label>Method / Device</Label>
           <Select value={device} onChange={(e) => setDevice(e.target.value as ScanDevice)}>
             {SCAN_DEVICES.map((d) => (
