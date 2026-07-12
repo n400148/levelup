@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 // Fixed to Eastern Time rather than the device's own timezone/clock — PWAs
 // can end up running with a stale or incorrect device timezone (or a
 // service-worker-cached shell computed at an earlier moment), which showed
@@ -53,19 +51,4 @@ export function daysBetween(startIso: string, endIso: string): number {
 
 export function dayCounter(startIso: string): number {
   return daysBetween(startIso, todayISO()) + 1;
-}
-
-// These pages are statically prerendered, so a value computed inline as
-// `max={todayISO()}` gets baked into the HTML at *build* time and only
-// becomes correct again for whoever loads the page on the same day as the
-// last deploy — every day after that, the date input's max bound is stuck
-// one (or more) days in the past until the next deploy. Recomputing inside
-// useEffect forces a genuine post-mount re-render instead of relying on a
-// value that only happens to be right around build time.
-export function useTodayISO(): string {
-  const [today, setToday] = useState(todayISO);
-  useEffect(() => {
-    setToday(todayISO());
-  }, []);
-  return today;
 }

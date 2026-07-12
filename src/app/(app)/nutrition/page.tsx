@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { nutritionFromRow, nutritionToRow } from "@/lib/mapping";
 import type { NutritionEntry, UserGoals } from "@/lib/types";
 import { calculateMacros } from "@/lib/macros";
-import { todayISO, useTodayISO, formatShortDate } from "@/lib/date";
+import { todayISO, formatShortDate } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +32,6 @@ export default function NutritionPage() {
   const [saving, setSaving] = useState(false);
 
   const [date, setDate] = useState(todayISO());
-  const maxDate = useTodayISO();
   const [form, setForm] = useState({ calories: "", protein: "", carbs: "", fats: "", water: "" });
 
   async function loadAll() {
@@ -106,7 +105,7 @@ export default function NutritionPage() {
         <div className="grid grid-cols-2 gap-3">
           <form onSubmit={handleSave}>
             <Label>Date</Label>
-            <Input type="date" value={date} max={maxDate} onChange={(e) => setDate(e.target.value)} />
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <Label>Calories</Label>
             <Input type="number" inputMode="numeric" value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })} placeholder="0" />
             <Label>Protein (g)</Label>

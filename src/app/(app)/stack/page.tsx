@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { stackItemFromRow, stackItemToRow } from "@/lib/mapping";
 import type { StackItem, StackKind } from "@/lib/types";
 import { PEPTIDE_PRESETS, SUPPLEMENT_PRESETS, DOSE_UNITS, FREQUENCIES } from "@/lib/stack-data";
-import { todayISO, useTodayISO } from "@/lib/date";
+import { todayISO } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
 import { Input, Label, Select, Textarea } from "@/components/ui/Input";
@@ -32,7 +32,6 @@ export default function StackPage() {
   const [unit, setUnit] = useState(DOSE_UNITS[0]);
   const [freq, setFreq] = useState(FREQUENCIES[0]);
   const [startDate, setStartDate] = useState(todayISO());
-  const maxDate = useTodayISO();
   const [notes, setNotes] = useState("");
 
   const table = kind === "peptide" ? "peptides" : "supplements";
@@ -229,7 +228,7 @@ export default function StackPage() {
           </Select>
 
           <Label>Start Date</Label>
-          <Input type="date" value={startDate} max={maxDate} onChange={(e) => setStartDate(e.target.value)} />
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
 
           <Label>Notes (optional)</Label>
           <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Source, protocol, observations…" />

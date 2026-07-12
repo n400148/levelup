@@ -8,7 +8,7 @@ import { sanitizeWorkoutPlans, workoutLogFromRow, workoutLogToRow } from "@/lib/
 import type { LoggedExercise, LoggedSet, PlanExercise, Split, UserGoals, WorkoutLog, WorkoutPlans } from "@/lib/types";
 import { SPLIT_MUSCLES, SPLIT_PRESETS } from "@/lib/train-data";
 import { getProgressionForExercise, PROGRESSION_DISCLAIMER } from "@/lib/progression";
-import { todayISO, useTodayISO } from "@/lib/date";
+import { todayISO } from "@/lib/date";
 import {
   clearSavedSession,
   loadSavedSession,
@@ -42,7 +42,6 @@ export function SplitPageClient({ split }: { split: Split }) {
   const [mode, setMode] = useState<"plan" | "log">("log");
   const [selectedDay, setSelectedDay] = useState("A");
   const [logDate, setLogDate] = useState(todayISO());
-  const maxDate = useTodayISO();
   const [sessionExercises, setSessionExercises] = useState<LoggedExercise[]>([]);
   const [extraName, setExtraName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -347,7 +346,6 @@ export function SplitPageClient({ split }: { split: Split }) {
               <Input
                 type="date"
                 value={logDate}
-                max={maxDate}
                 onChange={(e) => setLogDate(e.target.value)}
                 className="!w-auto text-[12px] py-1.5"
               />
