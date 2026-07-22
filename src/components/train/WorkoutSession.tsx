@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { LoggedExercise, LoggedSet, PlanExercise } from "@/lib/types";
+import type { ProgressionResult } from "@/lib/progression";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
+import { ProgressionCard } from "@/components/train/ProgressionCard";
 
 interface Progress {
   exIndex: number;
@@ -23,6 +25,7 @@ interface HistoryEntry {
 interface Props {
   exercises: PlanExercise[];
   previousSetsFor: (name: string) => LoggedSet[] | null;
+  progressionFor?: (name: string, currentSets: LoggedSet[]) => ProgressionResult;
   onFinish: (exercises: LoggedExercise[]) => void;
   onCancel: () => void;
   initial?: Progress;
@@ -35,7 +38,15 @@ function formatClock(totalSeconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel, initial, onProgress }: Props) {
+export function WorkoutSession({
+  exercises,
+  previousSetsFor,
+  progressionFor,
+  onFinish,
+  onCancel,
+  initial,
+  onProgress,
+}: Props) {
   const [exIndex, setExIndex] = useState(initial?.exIndex ?? 0);
   const [setIndex, setSetIndex] = useState(initial?.setIndex ?? 0);
   // Which half of a superset pair is currently up: 0 is the first exercise
@@ -64,6 +75,8 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
   const isWarmup = setIndex < warmupCount;
   const setNumberInPhase = isWarmup ? setIndex + 1 : setIndex - warmupCount + 1;
   const previousSets = ex ? previousSetsFor(currentName) : null;
+  const currentSetsSoFar = collected.find((e) => e.name === currentName)?.sets ?? [];
+  const progression = ex && progressionFor ? progressionFor(currentName, currentSetsSoFar) : null;
   const previousForThisSet = previousSets?.[setIndex] ?? null;
   const restRemaining = restEndAt ? Math.max(0, Math.ceil((restEndAt - Date.now()) / 1000)) : 0;
   const resting = restRemaining > 0;
@@ -271,6 +284,7 @@ export function WorkoutSession({ exercises, previousSetsFor, onFinish, onCancel,
           </div>
         ) : (
           <>
+            {progression && progression.status !== "no_data" && <ProgressionCard result={progression} />}
             <div className="font-mono text-[11px] text-[var(--text-faint)] mb-3">
               {previousForThisSet ? `Previous: ${previousForThisSet.weight} × ${previousForThisSet.reps}` : "No previous data"}
             </div>

@@ -164,6 +164,13 @@ export function SplitPageClient({ split }: { split: Split }) {
     setSessionExercises((prev) => prev.map((e, i) => (i === idx ? { ...e, sets } : e)));
   }
 
+  // Guided workouts always log against today, unlike the manual Log tab
+  // (which can be editing a past date) — same progression logic, just
+  // always excluding today's own in-progress session as the baseline.
+  function progressionForGuided(name: string, currentSets: LoggedSet[]) {
+    return getProgressionForExercise(logs.filter((l) => l.date !== todayISO()), name, goal, currentSets);
+  }
+
   function removeSessionExercise(idx: number) {
     setSessionExercises((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -321,6 +328,7 @@ export function SplitPageClient({ split }: { split: Split }) {
         <WorkoutSession
           exercises={dayPlan[selectedDay] ?? []}
           previousSetsFor={previousSetsFor}
+          progressionFor={progressionForGuided}
           onFinish={handleSessionFinish}
           onCancel={() => setSessionActive(false)}
           initial={sessionInitial}
@@ -390,6 +398,7 @@ export function SplitPageClient({ split }: { split: Split }) {
                 logs.filter((l) => l.date !== logDate),
                 ex.name,
                 goal,
+                ex.sets,
               )}
               onChange={(sets) => updateSessionSets(i, sets)}
               onRemoveExercise={() => removeSessionExercise(i)}
