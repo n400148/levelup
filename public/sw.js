@@ -38,22 +38,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else (HTML shell, manifest): network-first. This app ships
-  // fixes frequently, and a previous stale-while-revalidate strategy here
-  // meant every visit could show what was cached from the *previous* visit,
-  // one deploy behind — worse, the background cache refresh wasn't wrapped
-  // in waitUntil(), so mobile browsers could suspend the service worker
-  // before that write ever completed, leaving a device stuck on a much
-  // older snapshot indefinitely rather than just one visit behind. Always
-  // go to the network first when online; only fall back to cache (for
-  // offline use) if the network fetch fails.
+  // Everything else (HTML shell, manifest): stale-while-revalidate. Render
+  // instantly from cache — this is what makes reopening the PWA feel
+  // instant instead of waiting on a network round-trip every time — then
+  // refresh the cache in the background for next time. This used to go
+  // stale indefinitely because the background refresh was only registered
+  // with waitUntil() *after* the network fetch had already resolved, by
+  // which point the browser may have already torn the worker down since
+  // respondWith() had long since settled from cache. Kicking the fetch off
+  // and registering it with waitUntil() in the same tick (before anything
+  // is awaited) means the extend-lifetime promise is in place from the
+  // start, so the browser can't tear the worker down before the write
+  // completes. That, plus sw.js itself now being served with
+  // Cache-Control: no-cache (see netlify.toml), means the cache reliably
+  // catches up within a visit or two of any new deploy — no need to give
+  // up the instant-paint speed to stay correct.
+  const networkUpdate = fetch(event.request).then((response) => {
+    const copy = response.clone();
+    return caches
+      .open(CACHE)
+      .then((cache) => cache.put(event.request, copy))
+      .then(() => response);
+  });
+  event.waitUntil(networkUpdate.catch(() => {}));
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const copy = response.clone();
-        event.waitUntil(caches.open(CACHE).then((cache) => cache.put(event.request, copy)));
-        return response;
-      })
-      .catch(() => caches.match(event.request)),
+    caches.match(event.request).then((cached) => cached || networkUpdate.catch(() => cached)),
   );
 });

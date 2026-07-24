@@ -7,7 +7,7 @@ import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
 const display = Barlow_Semi_Condensed({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["600", "700"],
 });
 
 const body = Inter({
