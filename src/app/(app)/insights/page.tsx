@@ -35,6 +35,7 @@ const EMPTY_GOALS: UserGoals = {
   splitProgram: null,
   customSplit: null,
   rotation: null,
+  mealPlan: null,
 };
 
 export default function InsightsPage() {
@@ -53,6 +54,8 @@ export default function InsightsPage() {
   const [brief, setBrief] = useState<string | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefError, setBriefError] = useState<string | null>(null);
+  const [followUp, setFollowUp] = useState("");
+  const [refining, setRefining] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -91,10 +94,6 @@ export default function InsightsPage() {
 
   function buildSummary(): string {
     const latestScan = scans[scans.length - 1];
-    const recentNutrition = nutrition.slice(-7);
-    const avgCalories = recentNutrition.length
-      ? Math.round(recentNutrition.reduce((s, e) => s + (e.calories ?? 0), 0) / recentNutrition.length)
-      : null;
 
     // Every peptide/supplement entry, oldest first, so a dose change (which
     // ends the old entry and opens a new one — see Stack tab) shows up as a
@@ -108,14 +107,36 @@ export default function InsightsPage() {
         return `${item.name}: ${dose}${item.freq ? ` ${item.freq}` : ""} — ${range}${item.notes ? ` (${item.notes})` : ""}`;
       });
 
-    const recentWeights = weights.slice(-14).map((w) => `${w.date}: ${w.weight}lb`);
+    const recentWeights = weights.slice(-30).map((w) => `${w.date}: ${w.weight}lb`);
+
+    // A full chronological log rather than a single averaged number, so the
+    // model can line specific days up against the weigh-in log above and
+    // actually spot things like "calories dropped the week weight stalled".
+    const recentNutrition = nutrition.slice(-30).map((e) => {
+      const parts = [];
+      if (e.calories != null) parts.push(`${e.calories}kcal`);
+      if (e.protein != null) parts.push(`P${e.protein}`);
+      if (e.carbs != null) parts.push(`C${e.carbs}`);
+      if (e.fats != null) parts.push(`F${e.fats}`);
+      if (e.water != null) parts.push(`W${e.water}oz`);
+      return `${e.date}: ${parts.length ? parts.join(" ") : "no macros logged"}`;
+    });
+
+    const mp = goals.mealPlan;
+    const hasMealPlan = !!mp && [mp.calories, mp.protein, mp.carbs, mp.fats, mp.water].some((v) => v != null);
+    const mealPlanLine = hasMealPlan
+      ? `Standing meal plan target${mp!.updatedAt ? ` (set ${mp!.updatedAt})` : ""}: ${mp!.calories ?? "–"}kcal, P${mp!.protein ?? "–"} C${mp!.carbs ?? "–"} F${mp!.fats ?? "–"}, W${mp!.water ?? "–"}oz.`
+      : "No standing meal plan target set (user logs day-by-day instead).";
 
     return [
       `Bodyweight: ${bodyweight ?? "unknown"} lb (${weights.length} entries logged).`,
       weightTrendInsight(weights).value,
-      recentWeights.length ? `Recent weigh-ins, oldest to newest: ${recentWeights.join(", ")}.` : "No recent weigh-ins.",
+      recentWeights.length ? `Weigh-ins, oldest to newest: ${recentWeights.join(", ")}.` : "No recent weigh-ins.",
       trainingFrequencyInsight(logs).value,
-      avgCalories ? `Averaging ${avgCalories} kcal/day over the last ${recentNutrition.length} logged days.` : "No recent nutrition logs.",
+      mealPlanLine,
+      recentNutrition.length
+        ? `Daily nutrition log, oldest to newest (compare these dates against the weigh-in log above to see how intake tracks with the weight trend):\n${recentNutrition.join("\n")}`
+        : "No nutrition logged.",
       latestScan ? latestScanInsight(scans).value : "No body scans logged.",
       stackHistory.length
         ? `Peptide/supplement dose history, oldest to newest (a name appearing more than once means the dose changed):\n${stackHistory.join("\n")}`
@@ -131,6 +152,7 @@ export default function InsightsPage() {
     setBriefLoading(true);
     setBriefError(null);
     setBrief(null);
+    setFollowUp("");
     try {
       const res = await fetch("/api/ai/coach", {
         method: "POST",
@@ -144,6 +166,27 @@ export default function InsightsPage() {
       setBriefError(e instanceof Error ? e.message : String(e));
     } finally {
       setBriefLoading(false);
+    }
+  }
+
+  async function handleRefine() {
+    if (!brief || !followUp.trim()) return;
+    setRefining(true);
+    setBriefError(null);
+    try {
+      const res = await fetch("/api/ai/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary: buildSummary(), priorResponse: brief, context: followUp.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Request failed");
+      setBrief(data.result);
+      setFollowUp("");
+    } catch (e) {
+      setBriefError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRefining(false);
     }
   }
 
@@ -188,6 +231,22 @@ export default function InsightsPage() {
           <div className="mt-3 bg-gradient-to-br from-[rgba(4,55,242,0.08)] to-[rgba(111,141,255,0.05)] border border-[rgba(4,55,242,0.3)] rounded-lg p-3.5">
             <div className="eyebrow mb-2">◈ Coach Brief</div>
             <div className="text-[13px] text-[var(--text-dim)] leading-relaxed whitespace-pre-line">{brief}</div>
+          </div>
+        )}
+        {brief && (
+          <div className="mt-3">
+            <p className="text-[11px] text-[var(--text-faint)] mb-2">
+              If it asked a question or you have more context, add it here to get a sharper answer.
+            </p>
+            <Textarea
+              value={followUp}
+              onChange={(e) => setFollowUp(e.target.value)}
+              placeholder="e.g. yes, I ate a lot of restaurant food yesterday…"
+              className="mb-2"
+            />
+            <Button variant="secondary" full onClick={handleRefine} disabled={refining || !followUp.trim()}>
+              {refining ? "Refining…" : "Refine With This Context"}
+            </Button>
           </div>
         )}
       </Card>

@@ -28,6 +28,7 @@ const EMPTY_GOALS: UserGoals = {
   splitProgram: null,
   customSplit: null,
   rotation: null,
+  mealPlan: null,
 };
 
 export default function GoalsPage() {

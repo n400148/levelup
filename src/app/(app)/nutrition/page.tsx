@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { nutritionFromRow, nutritionToRow } from "@/lib/mapping";
-import type { NutritionEntry, UserGoals } from "@/lib/types";
+import type { MealPlan, NutritionEntry, UserGoals } from "@/lib/types";
 import { calculateMacros } from "@/lib/macros";
 import { todayISO, formatShortDate } from "@/lib/date";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -20,6 +20,22 @@ const CalorieChart = dynamic(() => import("@/components/nutrition/CalorieChart")
   loading: () => <Skeleton className="h-[150px] w-full" />,
 });
 
+const EMPTY_GOALS: UserGoals = {
+  primaryGoal: null,
+  targetBf: null,
+  targetLeanMass: null,
+  targetBodyweight: null,
+  liftGoals: [],
+  sex: null,
+  birthYear: null,
+  splitProgram: null,
+  customSplit: null,
+  rotation: null,
+  mealPlan: null,
+};
+
+const EMPTY_MEAL_PLAN_FORM = { calories: "", protein: "", carbs: "", fats: "", water: "" };
+
 export default function NutritionPage() {
   const { user } = useAuth();
   const supabase = createClient();
@@ -27,12 +43,14 @@ export default function NutritionPage() {
   const [entries, setEntries] = useState<NutritionEntry[]>([]);
   const [bodyweight, setBodyweight] = useState<number | null>(null);
   const [leanMass, setLeanMass] = useState<number | null>(null);
-  const [goal, setGoal] = useState<UserGoals["primaryGoal"]>(null);
+  const [goals, setGoals] = useState<UserGoals>(EMPTY_GOALS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingMealPlan, setSavingMealPlan] = useState(false);
 
   const [date, setDate] = useState(todayISO());
   const [form, setForm] = useState({ calories: "", protein: "", carbs: "", fats: "", water: "" });
+  const [mealPlanForm, setMealPlanForm] = useState(EMPTY_MEAL_PLAN_FORM);
 
   async function loadAll() {
     const [nutritionRes, weightRes, scanRes, goalsRes] = await Promise.all([
@@ -45,7 +63,15 @@ export default function NutritionPage() {
     if (weightRes.data?.[0]) setBodyweight(Number(weightRes.data[0].weight));
     if (scanRes.data?.[0]?.lmm) setLeanMass(Number(scanRes.data[0].lmm));
     const goalsData = goalsRes.data?.goals as unknown as UserGoals | undefined;
-    setGoal(goalsData?.primaryGoal ?? null);
+    const merged = { ...EMPTY_GOALS, ...(goalsData ?? {}) };
+    setGoals(merged);
+    setMealPlanForm({
+      calories: merged.mealPlan?.calories?.toString() ?? "",
+      protein: merged.mealPlan?.protein?.toString() ?? "",
+      carbs: merged.mealPlan?.carbs?.toString() ?? "",
+      fats: merged.mealPlan?.fats?.toString() ?? "",
+      water: merged.mealPlan?.water?.toString() ?? "",
+    });
     setLoading(false);
   }
 
@@ -94,7 +120,46 @@ export default function NutritionPage() {
     setSaving(false);
   }
 
-  const macros = bodyweight ? calculateMacros(bodyweight, goal, leanMass) : null;
+  async function handleSaveMealPlan(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+    setSavingMealPlan(true);
+    const mealPlan: MealPlan = {
+      calories: mealPlanForm.calories ? parseInt(mealPlanForm.calories, 10) : null,
+      protein: mealPlanForm.protein ? parseInt(mealPlanForm.protein, 10) : null,
+      carbs: mealPlanForm.carbs ? parseInt(mealPlanForm.carbs, 10) : null,
+      fats: mealPlanForm.fats ? parseInt(mealPlanForm.fats, 10) : null,
+      water: mealPlanForm.water ? parseInt(mealPlanForm.water, 10) : null,
+      updatedAt: todayISO(),
+    };
+    const next = { ...goals, mealPlan };
+    setGoals(next);
+    await supabase.from("user_goals").upsert({ user_id: user.id, goals: next as never }, { onConflict: "user_id" });
+    setSavingMealPlan(false);
+  }
+
+  async function handleClearMealPlan() {
+    if (!user) return;
+    setSavingMealPlan(true);
+    const next = { ...goals, mealPlan: null };
+    setGoals(next);
+    setMealPlanForm(EMPTY_MEAL_PLAN_FORM);
+    await supabase.from("user_goals").upsert({ user_id: user.id, goals: next as never }, { onConflict: "user_id" });
+    setSavingMealPlan(false);
+  }
+
+  const macros = bodyweight ? calculateMacros(bodyweight, goals.primaryGoal, leanMass) : null;
+  const mealPlan = goals.mealPlan;
+  const hasMealPlan = !!mealPlan && [mealPlan.calories, mealPlan.protein, mealPlan.carbs, mealPlan.fats, mealPlan.water].some((v) => v != null);
+  const targets = hasMealPlan
+    ? {
+        calories: mealPlan!.calories ?? macros?.calories ?? 0,
+        proteinG: mealPlan!.protein ?? macros?.proteinG ?? 0,
+        carbsG: mealPlan!.carbs ?? macros?.carbsG ?? 0,
+        fatG: mealPlan!.fats ?? macros?.fatG ?? 0,
+        waterOz: mealPlan!.water ?? macros?.waterOz ?? 0,
+      }
+    : macros;
   const todayEntry = entries.find((e) => e.date === date);
   const history = [...entries].reverse().slice(0, 30);
 
@@ -170,14 +235,59 @@ export default function NutritionPage() {
         </Card>
       )}
 
-      {macros && (
+      <Card>
+        <CardTitle>Meal Plan</CardTitle>
+        <p className="text-[11px] text-[var(--text-faint)] mb-3">
+          If you follow a fixed meal plan and don&apos;t want to log intake day-by-day, set your standing targets
+          here — they&apos;ll replace the auto-estimate below and in Today vs Target.
+        </p>
+        <form onSubmit={handleSaveMealPlan}>
+          <div className="grid grid-cols-2 gap-x-3">
+            <div>
+              <Label>Calories</Label>
+              <Input type="number" inputMode="numeric" value={mealPlanForm.calories} onChange={(e) => setMealPlanForm({ ...mealPlanForm, calories: e.target.value })} placeholder="0" />
+            </div>
+            <div>
+              <Label>Protein (g)</Label>
+              <Input type="number" inputMode="numeric" value={mealPlanForm.protein} onChange={(e) => setMealPlanForm({ ...mealPlanForm, protein: e.target.value })} placeholder="0" />
+            </div>
+            <div>
+              <Label>Carbs (g)</Label>
+              <Input type="number" inputMode="numeric" value={mealPlanForm.carbs} onChange={(e) => setMealPlanForm({ ...mealPlanForm, carbs: e.target.value })} placeholder="0" />
+            </div>
+            <div>
+              <Label>Fats (g)</Label>
+              <Input type="number" inputMode="numeric" value={mealPlanForm.fats} onChange={(e) => setMealPlanForm({ ...mealPlanForm, fats: e.target.value })} placeholder="0" />
+            </div>
+            <div className="col-span-2">
+              <Label>Water (oz)</Label>
+              <Input type="number" inputMode="numeric" value={mealPlanForm.water} onChange={(e) => setMealPlanForm({ ...mealPlanForm, water: e.target.value })} placeholder="0" />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3.5">
+            <Button type="submit" variant="primary" full disabled={savingMealPlan}>
+              {savingMealPlan ? "Saving…" : "Save Meal Plan"}
+            </Button>
+            {hasMealPlan && (
+              <Button type="button" variant="secondary" onClick={handleClearMealPlan} disabled={savingMealPlan}>
+                Clear
+              </Button>
+            )}
+          </div>
+        </form>
+      </Card>
+
+      {targets && (
         <Card>
           <CardTitle>Today vs Target</CardTitle>
-          <MacroBar label="Calories" current={todayEntry?.calories ?? 0} target={macros.calories} unit="" />
-          <MacroBar label="Protein" current={todayEntry?.protein ?? 0} target={macros.proteinG} unit="g" />
-          <MacroBar label="Carbs" current={todayEntry?.carbs ?? 0} target={macros.carbsG} unit="g" />
-          <MacroBar label="Fats" current={todayEntry?.fats ?? 0} target={macros.fatG} unit="g" />
-          <MacroBar label="Water" current={todayEntry?.water ?? 0} target={macros.waterOz} unit="oz" />
+          <p className="text-[10px] text-[var(--text-faint)] mb-2">
+            {hasMealPlan ? "Comparing against your saved meal plan." : "Comparing against your auto-calculated estimate."}
+          </p>
+          <MacroBar label="Calories" current={todayEntry?.calories ?? 0} target={targets.calories} unit="" />
+          <MacroBar label="Protein" current={todayEntry?.protein ?? 0} target={targets.proteinG} unit="g" />
+          <MacroBar label="Carbs" current={todayEntry?.carbs ?? 0} target={targets.carbsG} unit="g" />
+          <MacroBar label="Fats" current={todayEntry?.fats ?? 0} target={targets.fatG} unit="g" />
+          <MacroBar label="Water" current={todayEntry?.water ?? 0} target={targets.waterOz} unit="oz" />
         </Card>
       )}
 

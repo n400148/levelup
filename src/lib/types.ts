@@ -448,4 +448,19 @@ export interface UserGoals {
    * the program's full day list (e.g. Upper, Lower) when displayed.
    */
   rotation: RotationSlot[] | null;
+  /**
+   * A standing set of target macros for people who follow a fixed meal plan
+   * instead of logging intake day-by-day. When set, the Nutrition tab shows
+   * these as the target instead of the auto-calculated estimate.
+   */
+  mealPlan: MealPlan | null;
+}
+
+export interface MealPlan {
+  calories: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fats: number | null;
+  water: number | null;
+  updatedAt: string | null;
 }
