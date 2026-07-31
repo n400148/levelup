@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PlanExercise } from "@/lib/types";
+import { autoRepRangeFor } from "@/lib/progression";
 import { Chip } from "@/components/ui/Chip";
 import { Input, Label } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -79,6 +80,12 @@ export function PlanEditor({
   function saveSuperset(name: string) {
     if (supersetDraft.trim()) onConfigure(name, { pairedWith: supersetDraft.trim() });
     setSupersetTarget(null);
+  }
+
+  function repRangeLabelFor(ex: PlanExercise): string {
+    if (ex.repRangeLo && ex.repRangeHi) return `${ex.repRangeLo}-${ex.repRangeHi} reps`;
+    const [lo, hi] = autoRepRangeFor(ex.name);
+    return `${lo}-${hi} reps (auto)`;
   }
 
   return (
@@ -176,11 +183,12 @@ export function PlanEditor({
                     </div>
                   </div>
                 )}
-                {!open && (ex.targetSets || ex.warmupSets || ex.restSeconds) && (
+                {!open && (
                   <div className="pl-11 pr-3 pb-2.5 -mt-1 font-mono text-[11px] text-[var(--text-faint)]">
                     {ex.warmupSets ? `${ex.warmupSets} warmup · ` : ""}
                     {ex.targetSets ?? 3} working sets
                     {ex.restSeconds ? ` · ${ex.restSeconds}s rest` : ""}
+                    {` · ${repRangeLabelFor(ex)}`}
                   </div>
                 )}
                 {open && (
@@ -226,6 +234,38 @@ export function PlanEditor({
                         />
                       </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div>
+                        <Label>Rep range low</Label>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          value={ex.repRangeLo ?? ""}
+                          placeholder={`${autoRepRangeFor(ex.name)[0]}`}
+                          onChange={(e) =>
+                            onConfigure(ex.name, { repRangeLo: e.target.value ? parseInt(e.target.value, 10) : undefined })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Rep range high</Label>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          value={ex.repRangeHi ?? ""}
+                          placeholder={`${autoRepRangeFor(ex.name)[1]}`}
+                          onChange={(e) =>
+                            onConfigure(ex.name, { repRangeHi: e.target.value ? parseInt(e.target.value, 10) : undefined })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-[var(--text-faint)] mt-1.5 leading-relaxed">
+                      Leave blank to auto-detect from the exercise name — compound lifts default to 6-8 reps,
+                      isolation work to 10-15.
+                    </p>
                   </div>
                 )}
               </div>

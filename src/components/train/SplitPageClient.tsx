@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { sanitizeWorkoutPlans, workoutLogFromRow, workoutLogToRow } from "@/lib/mapping";
-import type { LoggedExercise, LoggedSet, PlanExercise, Split, UserGoals, WorkoutLog, WorkoutPlans } from "@/lib/types";
+import type { LoggedExercise, LoggedSet, PlanExercise, Split, WorkoutLog, WorkoutPlans } from "@/lib/types";
 import { SPLIT_MUSCLES, SPLIT_PRESETS } from "@/lib/train-data";
 import { getProgressionForExercise, PROGRESSION_DISCLAIMER } from "@/lib/progression";
 import { todayISO } from "@/lib/date";
@@ -36,7 +36,6 @@ export function SplitPageClient({ split }: { split: Split }) {
 
   const [plans, setPlans] = useState<WorkoutPlans>({});
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
-  const [goal, setGoal] = useState<UserGoals["primaryGoal"]>(null);
   const [loading, setLoading] = useState(true);
 
   const [mode, setMode] = useState<"plan" | "log">("log");
@@ -61,15 +60,12 @@ export function SplitPageClient({ split }: { split: Split }) {
   }, [split]);
 
   async function loadAll() {
-    const [plansRes, logsRes, goalsRes] = await Promise.all([
+    const [plansRes, logsRes] = await Promise.all([
       supabase.from("workout_plans").select("plans").maybeSingle(),
       supabase.from("workout_logs").select("*").eq("split", split).order("date", { ascending: false }).limit(200),
-      supabase.from("user_goals").select("goals").maybeSingle(),
     ]);
     if (plansRes.data?.plans) setPlans(sanitizeWorkoutPlans(plansRes.data.plans));
     if (logsRes.data) setLogs(logsRes.data.map(workoutLogFromRow));
-    const goalsData = goalsRes.data?.goals as unknown as UserGoals | undefined;
-    setGoal(goalsData?.primaryGoal ?? null);
     setLoading(false);
   }
 
@@ -164,11 +160,24 @@ export function SplitPageClient({ split }: { split: Split }) {
     setSessionExercises((prev) => prev.map((e, i) => (i === idx ? { ...e, sets } : e)));
   }
 
+  // A superset's paired exercise is just a name string tucked inside its
+  // anchor's plan entry, not its own plan entry, so it has no rep-range
+  // override of its own — it falls back to auto-detection by name.
+  function repRangeOverrideFor(name: string) {
+    const pe = (dayPlan[selectedDay] ?? []).find((e) => e.name.toLowerCase() === name.toLowerCase());
+    return pe ? { repRangeLo: pe.repRangeLo, repRangeHi: pe.repRangeHi } : undefined;
+  }
+
   // Guided workouts always log against today, unlike the manual Log tab
   // (which can be editing a past date) — same progression logic, just
   // always excluding today's own in-progress session as the baseline.
   function progressionForGuided(name: string, currentSets: LoggedSet[]) {
-    return getProgressionForExercise(logs.filter((l) => l.date !== todayISO()), name, goal, currentSets);
+    return getProgressionForExercise(
+      logs.filter((l) => l.date !== todayISO()),
+      name,
+      currentSets,
+      repRangeOverrideFor(name),
+    );
   }
 
   function removeSessionExercise(idx: number) {
@@ -397,8 +406,8 @@ export function SplitPageClient({ split }: { split: Split }) {
               progression={getProgressionForExercise(
                 logs.filter((l) => l.date !== logDate),
                 ex.name,
-                goal,
                 ex.sets,
+                repRangeOverrideFor(ex.name),
               )}
               onChange={(sets) => updateSessionSets(i, sets)}
               onRemoveExercise={() => removeSessionExercise(i)}

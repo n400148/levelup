@@ -227,12 +227,16 @@ function sanitizePlanExercise(raw: unknown): PlanExercise | null {
     const targetSets = Number(r.targetSets);
     const warmupSets = Number(r.warmupSets);
     const restSeconds = Number(r.restSeconds);
+    const repRangeLo = Number(r.repRangeLo);
+    const repRangeHi = Number(r.repRangeHi);
     return {
       name: r.name,
       targetSets: Number.isFinite(targetSets) && targetSets > 0 ? targetSets : undefined,
       warmupSets: Number.isFinite(warmupSets) && warmupSets > 0 ? warmupSets : undefined,
       restSeconds: Number.isFinite(restSeconds) && restSeconds > 0 ? restSeconds : undefined,
       pairedWith: typeof r.pairedWith === "string" && r.pairedWith.length > 0 ? r.pairedWith : undefined,
+      repRangeLo: Number.isFinite(repRangeLo) && repRangeLo > 0 ? repRangeLo : undefined,
+      repRangeHi: Number.isFinite(repRangeHi) && repRangeHi > 0 ? repRangeHi : undefined,
     };
   }
   return null;

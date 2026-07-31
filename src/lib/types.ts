@@ -324,6 +324,13 @@ export interface PlanExercise {
   /** Superset partner — done immediately after this exercise each round,
    * with the round's rest only taken after both are done. */
   pairedWith?: string;
+  /**
+   * Explicit target rep range for progression suggestions. When either is
+   * unset, the range is auto-detected from the exercise name (compound vs.
+   * isolation) instead — see `autoRepRangeFor` in `@/lib/progression`.
+   */
+  repRangeLo?: number;
+  repRangeHi?: number;
 }
 
 export type DayPlan = Record<string, PlanExercise[]>; // dayLabel -> exercises
