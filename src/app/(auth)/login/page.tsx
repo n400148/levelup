@@ -32,8 +32,13 @@ function LoginForm() {
     // is attacker-controllable via the URL, so anything else (a full URL,
     // a protocol-relative "//evil.com") would be an open redirect.
     const next = searchParams.get("next");
-    const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/weight";
-    router.replace(target);
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      // Full page load: `next` can be a route handler (e.g. the connector's
+      // /oauth/authorize consent screen), which the client router can't render.
+      window.location.assign(next);
+      return;
+    }
+    router.replace("/weight");
     router.refresh();
   }
 

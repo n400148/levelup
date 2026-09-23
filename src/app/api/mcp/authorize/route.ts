@@ -29,8 +29,10 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = (claimsData?.claims as { sub?: string } | undefined)?.sub;
+  // 303, not NextResponse.redirect's default 307: a 307 makes the browser
+  // re-POST this consent form to the target instead of following with a GET.
   if (!userId) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", request.url), 303);
   }
 
   const redirect = new URL(redirectUri);
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
   if (decision !== "approve") {
     redirect.searchParams.set("error", "access_denied");
     if (state) redirect.searchParams.set("state", state);
-    return NextResponse.redirect(redirect);
+    return NextResponse.redirect(redirect, 303);
   }
 
   const code = randomToken();
@@ -58,5 +60,5 @@ export async function POST(request: Request) {
 
   redirect.searchParams.set("code", code);
   if (state) redirect.searchParams.set("state", state);
-  return NextResponse.redirect(redirect);
+  return NextResponse.redirect(redirect, 303);
 }

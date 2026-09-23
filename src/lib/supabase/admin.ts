@@ -9,9 +9,10 @@ import type { Database } from "@/lib/types";
 // themselves. Never import this from client code or from a route that
 // doesn't do that scoping — it has full read/write access to every table.
 export function createAdminClient() {
-  return createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  // Netlify has this saved as `supabase_key`; SUPABASE_SERVICE_ROLE_KEY is the documented name.
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.supabase_key;
+  if (!key) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");
+  return createSupabaseClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
