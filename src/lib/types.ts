@@ -231,6 +231,109 @@ export type Database = {
         };
         Relationships: [];
       };
+      // Backing store for the LiftCipher MCP connector's own OAuth 2.1 layer
+      // (dynamic client registration + authorization code + PKCE). Touched
+      // only via the service-role key from server routes — see
+      // src/lib/supabase/admin.ts and src/app/api/mcp/**.
+      mcp_oauth_clients: {
+        Row: {
+          client_id: string;
+          client_name: string | null;
+          redirect_uris: string[];
+          created_at: string;
+        };
+        Insert: {
+          client_id: string;
+          client_name?: string | null;
+          redirect_uris: string[];
+          created_at?: string;
+        };
+        Update: {
+          client_id?: string;
+          client_name?: string | null;
+          redirect_uris?: string[];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      mcp_oauth_codes: {
+        Row: {
+          code: string;
+          client_id: string;
+          user_id: string;
+          redirect_uri: string;
+          code_challenge: string;
+          code_challenge_method: string;
+          scope: string | null;
+          expires_at: string;
+          used: boolean;
+          created_at: string;
+        };
+        Insert: {
+          code: string;
+          client_id: string;
+          user_id: string;
+          redirect_uri: string;
+          code_challenge: string;
+          code_challenge_method?: string;
+          scope?: string | null;
+          expires_at: string;
+          used?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          code?: string;
+          client_id?: string;
+          user_id?: string;
+          redirect_uri?: string;
+          code_challenge?: string;
+          code_challenge_method?: string;
+          scope?: string | null;
+          expires_at?: string;
+          used?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      mcp_oauth_tokens: {
+        Row: {
+          id: string;
+          access_token_hash: string;
+          refresh_token_hash: string | null;
+          client_id: string;
+          user_id: string;
+          scope: string | null;
+          access_expires_at: string;
+          refresh_expires_at: string | null;
+          revoked: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          access_token_hash: string;
+          refresh_token_hash?: string | null;
+          client_id: string;
+          user_id: string;
+          scope?: string | null;
+          access_expires_at: string;
+          refresh_expires_at?: string | null;
+          revoked?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          access_token_hash?: string;
+          refresh_token_hash?: string | null;
+          client_id?: string;
+          user_id?: string;
+          scope?: string | null;
+          access_expires_at?: string;
+          refresh_expires_at?: string | null;
+          revoked?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };

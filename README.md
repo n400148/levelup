@@ -32,6 +32,7 @@ Open http://localhost:3000 — you'll be redirected to `/login`.
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | Supabase project URL, safe to expose |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | Supabase publishable/anon key, safe to expose (RLS enforces access) |
 | `GEMINI_KEY` | server only (`/api/ai/*` routes) | Google AI Studio API key — **never** exposed to the client |
+| `SUPABASE_SERVICE_ROLE_KEY` | server only (`/api/mcp/*` routes) | Bypasses RLS — **never** exposed to the client. Used only by the MCP connector's own server-to-server routes, which manually scope every query by `user_id` themselves. Find it in Supabase → Project Settings → API → service_role secret key. |
 
 ## Database
 
@@ -40,7 +41,19 @@ applied through the Supabase MCP tooling during development, not checked into
 this repo as SQL files). Tables: `weights`, `workout_logs`, `workout_plans`,
 `nutrition`, `body_scans`, `peptides`, `supplements`, `user_goals` — every
 table has Row Level Security enabled with `select/insert/update/delete`
-policies scoped to `auth.uid() = user_id`.
+policies scoped to `auth.uid() = user_id`. Three more —
+`mcp_oauth_clients`, `mcp_oauth_codes`, `mcp_oauth_tokens` — back the MCP
+connector's own OAuth layer; RLS is enabled on them with no policies at all,
+since only the service-role key (never the client) ever touches them.
+
+## MCP connector
+
+`/api/mcp` exposes a user's own tracked data (weights, nutrition, workouts,
+stack, scans, goals) as MCP tools a Claude chat can call, authenticated via
+this app's own OAuth 2.1 + PKCE layer (dynamic client registration at
+`/api/mcp/register`, consent screen at `/oauth/authorize`, tokens at
+`/api/mcp/token`) — a Claude user adds it once under claude.ai Settings →
+Connectors with this app's URL. See `src/lib/mcp/` and `src/app/api/mcp/`.
 
 ## Deploying
 

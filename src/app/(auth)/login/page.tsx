@@ -28,7 +28,12 @@ function LoginForm() {
       setError(error.message);
       return;
     }
-    router.replace("/weight");
+    // Only ever redirect to a same-origin relative path from this — `next`
+    // is attacker-controllable via the URL, so anything else (a full URL,
+    // a protocol-relative "//evil.com") would be an open redirect.
+    const next = searchParams.get("next");
+    const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/weight";
+    router.replace(target);
     router.refresh();
   }
 
