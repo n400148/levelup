@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashToken, randomToken, verifyPkceS256 } from "@/lib/mcp/tokens";
+import { corsPreflight, debugLog, withCors } from "@/lib/mcp/http";
 
 const ACCESS_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const REFRESH_TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
@@ -11,8 +12,8 @@ async function parseBody(req: Request): Promise<Record<string, string>> {
     const json = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     return Object.fromEntries(Object.entries(json).map(([k, v]) => [k, String(v)]));
   }
-  const form = await req.formData();
-  return Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)]));
+  const form = await req.formData().catch(() => null);
+  return form ? Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)])) : {};
 }
 
 function errorResponse(error: string, description: string, status = 400) {
@@ -20,7 +21,26 @@ function errorResponse(error: string, description: string, status = 400) {
 }
 
 export async function POST(req: Request) {
-  const body = await parseBody(req);
+  let res: Response;
+  let grantType: string | undefined;
+  try {
+    const body = await parseBody(req);
+    grantType = body.grant_type;
+    res = await handleToken(body);
+  } catch (e) {
+    res = errorResponse("server_error", e instanceof Error ? e.message : String(e), 500);
+  }
+  const detail: Record<string, unknown> = { grantType };
+  if (res.status !== 200) detail.error = await res.clone().text();
+  await debugLog(req, "token", res.status, detail);
+  return withCors(res);
+}
+
+export function OPTIONS() {
+  return corsPreflight();
+}
+
+async function handleToken(body: Record<string, string>): Promise<Response> {
   const admin = createAdminClient();
 
   if (body.grant_type === "authorization_code") {

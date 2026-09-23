@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { randomToken } from "@/lib/mcp/tokens";
+import { debugLog, publicOrigin } from "@/lib/mcp/http";
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!client || !client.redirect_uris.includes(redirectUri) || codeChallengeMethod !== "S256" || !codeChallenge) {
+    await debugLog(request, "consent", 400, { clientId, redirectUri, knownClient: Boolean(client) });
     return new NextResponse("Invalid authorization request.", { status: 400 });
   }
 
@@ -32,12 +34,14 @@ export async function POST(request: Request) {
   // 303, not NextResponse.redirect's default 307: a 307 makes the browser
   // re-POST this consent form to the target instead of following with a GET.
   if (!userId) {
-    return NextResponse.redirect(new URL("/login", request.url), 303);
+    await debugLog(request, "consent", 303, { reason: "session missing at consent submit" });
+    return NextResponse.redirect(`${publicOrigin(request)}/login`, 303);
   }
 
   const redirect = new URL(redirectUri);
 
   if (decision !== "approve") {
+    await debugLog(request, "consent", 303, { decision: "deny" });
     redirect.searchParams.set("error", "access_denied");
     if (state) redirect.searchParams.set("state", state);
     return NextResponse.redirect(redirect, 303);
@@ -55,9 +59,11 @@ export async function POST(request: Request) {
     expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
   });
   if (error) {
+    await debugLog(request, "consent", 500, { reason: error.message });
     return new NextResponse("Failed to create authorization code.", { status: 500 });
   }
 
+  await debugLog(request, "consent", 303, { decision: "approve", redirectHost: redirect.host });
   redirect.searchParams.set("code", code);
   if (state) redirect.searchParams.set("state", state);
   return NextResponse.redirect(redirect, 303);

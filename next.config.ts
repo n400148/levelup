@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
         destination: "/api/mcp/well-known/oauth-authorization-server",
       },
       {
+        source: "/.well-known/openid-configuration",
+        destination: "/api/mcp/well-known/oauth-authorization-server",
+      },
+      {
         source: "/.well-known/oauth-protected-resource",
         destination: "/api/mcp/well-known/oauth-protected-resource",
       },
@@ -19,6 +23,11 @@ const nextConfig: NextConfig = {
         source: "/.well-known/oauth-protected-resource/api/mcp",
         destination: "/api/mcp/well-known/oauth-protected-resource",
       },
+      // Default endpoints older MCP clients fall back to when they can't
+      // read the metadata above (MCP spec 2025-03-26).
+      { source: "/authorize", destination: "/oauth/authorize" },
+      { source: "/token", destination: "/api/mcp/token" },
+      { source: "/register", destination: "/api/mcp/register" },
     ];
   },
 };

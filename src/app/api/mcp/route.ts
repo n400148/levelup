@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { verifyBearerToken } from "@/lib/mcp/auth";
 import { buildMcpServer } from "@/lib/mcp/server";
+import { corsPreflight, debugLog, publicOrigin, withCors } from "@/lib/mcp/http";
 
 // The actual MCP resource server. Deployed on Netlify as a serverless
 // function, so there's no long-lived process to hold a session across
@@ -12,17 +13,21 @@ import { buildMcpServer } from "@/lib/mcp/server";
 export const dynamic = "force-dynamic";
 
 async function handle(request: NextRequest): Promise<Response> {
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
+  const hadAuthHeader = request.headers.has("authorization");
   const authInfo = await verifyBearerToken(request.headers.get("authorization"));
 
   if (!authInfo) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: {
-        "Content-Type": "application/json",
-        "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource"`,
-      },
-    });
+    await debugLog(request, "mcp", 401, { hadAuthHeader });
+    return withCors(
+      new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: {
+          "Content-Type": "application/json",
+          "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource"`,
+        },
+      }),
+    );
   }
 
   const server = buildMcpServer((authInfo.extra as { userId: string }).userId);
@@ -31,7 +36,9 @@ async function handle(request: NextRequest): Promise<Response> {
     enableJsonResponse: true,
   });
   await server.connect(transport);
-  return transport.handleRequest(request, { authInfo });
+  const res = await transport.handleRequest(request, { authInfo });
+  await debugLog(request, "mcp", res.status, { authed: true });
+  return withCors(res);
 }
 
 export async function GET(request: NextRequest) {
@@ -44,4 +51,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   return handle(request);
+}
+
+export function OPTIONS() {
+  return corsPreflight();
 }

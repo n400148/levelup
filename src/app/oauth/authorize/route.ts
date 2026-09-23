@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { debugLog, publicOrigin } from "@/lib/mcp/http";
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -69,7 +70,8 @@ function consentPage(opts: { clientName: string; email: string; hidden: Record<s
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = publicOrigin(request);
   const responseType = searchParams.get("response_type");
   const clientId = searchParams.get("client_id");
   const redirectUri = searchParams.get("redirect_uri");
@@ -78,10 +80,22 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state") ?? "";
   const scope = searchParams.get("scope") ?? "";
 
+  const logParams = {
+    responseType,
+    clientId,
+    redirectUri,
+    hasChallenge: Boolean(codeChallenge),
+    codeChallengeMethod,
+    scope,
+    resource: searchParams.get("resource"),
+  };
+
   if (responseType !== "code" || !clientId || !redirectUri || !codeChallenge) {
+    await debugLog(request, "authorize", 400, { ...logParams, reason: "missing param" });
     return new NextResponse("Malformed authorization request — missing a required parameter.", { status: 400 });
   }
   if (codeChallengeMethod !== "S256") {
+    await debugLog(request, "authorize", 400, { ...logParams, reason: "non-S256" });
     return new NextResponse("Only PKCE code_challenge_method=S256 is supported.", { status: 400 });
   }
 
@@ -96,6 +110,11 @@ export async function GET(request: NextRequest) {
   // registered client, so a validation failure renders inline rather than
   // bouncing the browser to an attacker-supplied redirect_uri.
   if (!client || !client.redirect_uris.includes(redirectUri)) {
+    await debugLog(request, "authorize", 400, {
+      ...logParams,
+      reason: client ? "redirect not registered" : "unknown client",
+      registered: client?.redirect_uris ?? null,
+    });
     return new NextResponse("Unknown client or unregistered redirect URI.", { status: 400 });
   }
 
@@ -104,9 +123,12 @@ export async function GET(request: NextRequest) {
   const claims = claimsData?.claims as { sub?: string; email?: string } | undefined;
 
   if (!claims?.sub) {
+    await debugLog(request, "authorize", 307, { ...logParams, reason: "not signed in, sent to login" });
     const next = `/oauth/authorize${new URL(request.url).search}`;
     return NextResponse.redirect(`${origin}/login?next=${encodeURIComponent(next)}`);
   }
+
+  await debugLog(request, "authorize", 200, { ...logParams, reason: "consent shown" });
 
   const html = consentPage({
     clientName: client.client_name || "A connected app",

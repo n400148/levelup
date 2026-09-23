@@ -25,7 +25,7 @@ self.addEventListener("fetch", (event) => {
   // Auth/OAuth traffic must always hit the network — Android opens the Claude
   // connector's sign-in in a Chrome tab that shares this worker, and a cached
   // or mishandled redirect there breaks the handoff back to Claude.
-  if (/^\/(api|oauth|auth|login|signup|\.well-known)(\/|$)/.test(url.pathname)) return;
+  if (/^\/(api|oauth|auth|login|signup|authorize|token|register|\.well-known)(\/|$)/.test(url.pathname)) return;
 
   if (IMMUTABLE.test(url.pathname)) {
     event.respondWith(
