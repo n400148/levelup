@@ -36,8 +36,27 @@ async function handle(request: NextRequest): Promise<Response> {
     enableJsonResponse: true,
   });
   await server.connect(transport);
+  const requestBody = await request.clone().text();
   const res = await transport.handleRequest(request, { authInfo });
-  await debugLog(request, "mcp", res.status, { authed: true });
+  const detail: Record<string, unknown> = { authed: true };
+  if (res.status >= 400) {
+    let rpcMethods: unknown = null;
+    try {
+      const parsed = JSON.parse(requestBody);
+      rpcMethods = (Array.isArray(parsed) ? parsed : [parsed]).map((m) => m?.method ?? "(response)");
+    } catch {
+      rpcMethods = "(unparseable)";
+    }
+    Object.assign(detail, {
+      rpcMethods,
+      protocolHeader: request.headers.get("mcp-protocol-version"),
+      sessionHeader: request.headers.has("mcp-session-id"),
+      accept: request.headers.get("accept"),
+      contentType: request.headers.get("content-type"),
+      responseBody: (await res.clone().text()).slice(0, 500),
+    });
+  }
+  await debugLog(request, "mcp", res.status, detail);
   return withCors(res);
 }
 
