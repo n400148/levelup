@@ -21,7 +21,7 @@ export function StackCard({
   onSave: (patch: Partial<StackItem>) => void;
   onChangeDose: (next: { dose: number | null; unit: string | null; freq: string | null; note: string | null }) => void;
 }) {
-  const active = !item.endDate || item.endDate >= todayISO();
+  const active = !item.endDate || item.endDate > todayISO();
   const [editing, setEditing] = useState(false);
   const [changingDose, setChangingDose] = useState(false);
   const [draft, setDraft] = useState(item);

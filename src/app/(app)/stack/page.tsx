@@ -153,7 +153,7 @@ export default function StackPage() {
   const pastGroups: [string, StackItem[]][] = [];
   for (const entry of groups) {
     const [, group] = entry;
-    const hasActive = group.some((i) => !i.endDate || i.endDate >= today);
+    const hasActive = group.some((i) => !i.endDate || i.endDate > today);
     (hasActive ? activeGroups : pastGroups).push(entry);
   }
 

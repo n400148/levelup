@@ -57,7 +57,7 @@ export function nutritionCalibrationInsight(
 
 export function stackSummaryInsight(peptides: StackItem[], supplements: StackItem[]): InsightRow {
   const today = todayISO();
-  const active = [...peptides, ...supplements].filter((i) => !i.endDate || i.endDate >= today);
+  const active = [...peptides, ...supplements].filter((i) => !i.endDate || i.endDate > today);
   if (active.length === 0) {
     return { label: "Active Stack", value: "No active peptides or supplements logged." };
   }

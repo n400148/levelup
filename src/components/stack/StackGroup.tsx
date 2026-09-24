@@ -122,7 +122,7 @@ export function StackGroup({
   const [addingPast, setAddingPast] = useState(false);
   const today = todayISO();
   const sorted = [...items].sort((a, b) => (b.startDate ?? "").localeCompare(a.startDate ?? ""));
-  const activeEntry = sorted.find((i) => !i.endDate || i.endDate >= today);
+  const activeEntry = sorted.find((i) => !i.endDate || i.endDate > today);
   const lastEnded = sorted.find((i) => i.endDate);
 
   return (
