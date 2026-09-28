@@ -49,7 +49,10 @@ since only the service-role key (never the client) ever touches them.
 ## MCP connector
 
 `/api/mcp` exposes a user's own tracked data (weights, nutrition, workouts,
-stack, scans, goals) as MCP tools a Claude chat can call, authenticated via
+stack, scans, goals) as MCP tools a Claude chat can call, plus write tools
+for workout plans and workout logs (`set_day_plan`, `upsert_plan_exercise`,
+`remove_plan_exercise`, `log_workout`) that require the `liftcipher:write`
+scope on top of `liftcipher:read`. Authenticated via
 this app's own OAuth 2.1 + PKCE layer (dynamic client registration at
 `/api/mcp/register`, consent screen at `/oauth/authorize`, tokens at
 `/api/mcp/token`) — a Claude user adds it once under claude.ai Settings →

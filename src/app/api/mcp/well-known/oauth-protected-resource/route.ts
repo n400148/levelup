@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { corsPreflight, debugLog, publicOrigin, withCors } from "@/lib/mcp/http";
+import { corsPreflight, publicOrigin, withCors } from "@/lib/mcp/http";
+import { READ_SCOPE, WRITE_SCOPE } from "@/lib/mcp/scopes";
 
 // Mounted at /.well-known/oauth-protected-resource (and the path-suffixed
 // /api/mcp variant) via rewrites in next.config.ts (RFC 9728) — a client
@@ -7,12 +8,11 @@ import { corsPreflight, debugLog, publicOrigin, withCors } from "@/lib/mcp/http"
 // header points back here.
 export async function GET(req: Request) {
   const origin = publicOrigin(req);
-  await debugLog(req, "resource-metadata", 200);
   return withCors(
     NextResponse.json({
       resource: `${origin}/api/mcp`,
       authorization_servers: [origin],
-      scopes_supported: ["liftcipher:read"],
+      scopes_supported: [READ_SCOPE, WRITE_SCOPE],
       bearer_methods_supported: ["header"],
     }),
   );

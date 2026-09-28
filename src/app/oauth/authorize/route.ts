@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { debugLog, publicOrigin } from "@/lib/mcp/http";
+import { publicOrigin } from "@/lib/mcp/http";
+import { normalizeScope, WRITE_SCOPE } from "@/lib/mcp/scopes";
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-function consentPage(opts: { clientName: string; email: string; hidden: Record<string, string> }): string {
+function consentPage(opts: { clientName: string; email: string; canWrite: boolean; hidden: Record<string, string> }): string {
   const fields = Object.entries(opts.hidden)
     .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
     .join("\n      ");
@@ -49,12 +50,15 @@ function consentPage(opts: { clientName: string; email: string; hidden: Record<s
     <div class="brand">LiftCipher</div>
     <div class="sub">Connector authorization</div>
     <h1>${escapeHtml(opts.clientName)} wants to access your LiftCipher data</h1>
-    <p>This lets it read your tracked data during chats. It cannot change or delete anything.</p>
+    <p>${
+      opts.canWrite
+        ? "It will be able to read your tracked data, and edit your workout plans and log workouts for you. It can't change or delete anything else."
+        : "It will be able to read your tracked data during chats. It can't change or delete anything."
+    }</p>
     <ul class="scopes">
-      <li>Weight, nutrition, and body scan history</li>
-      <li>Workout plans and logged sets</li>
-      <li>Peptide/supplement stack history</li>
-      <li>Goals and standing meal plan</li>
+      <li>Read: weight, nutrition, and body scan history</li>
+      <li>Read: workouts, stack history, goals, and meal plan</li>
+      ${opts.canWrite ? "<li>Edit: add, change, and remove exercises in your workout plans</li>\n      <li>Edit: log workout sessions</li>" : ""}
     </ul>
     <form method="POST" action="/api/mcp/authorize">
       ${fields}
@@ -78,24 +82,12 @@ export async function GET(request: NextRequest) {
   const codeChallenge = searchParams.get("code_challenge");
   const codeChallengeMethod = searchParams.get("code_challenge_method") ?? "S256";
   const state = searchParams.get("state") ?? "";
-  const scope = searchParams.get("scope") ?? "";
-
-  const logParams = {
-    responseType,
-    clientId,
-    redirectUri,
-    hasChallenge: Boolean(codeChallenge),
-    codeChallengeMethod,
-    scope,
-    resource: searchParams.get("resource"),
-  };
+  const scope = normalizeScope(searchParams.get("scope"));
 
   if (responseType !== "code" || !clientId || !redirectUri || !codeChallenge) {
-    await debugLog(request, "authorize", 400, { ...logParams, reason: "missing param" });
     return new NextResponse("Malformed authorization request — missing a required parameter.", { status: 400 });
   }
   if (codeChallengeMethod !== "S256") {
-    await debugLog(request, "authorize", 400, { ...logParams, reason: "non-S256" });
     return new NextResponse("Only PKCE code_challenge_method=S256 is supported.", { status: 400 });
   }
 
@@ -110,11 +102,6 @@ export async function GET(request: NextRequest) {
   // registered client, so a validation failure renders inline rather than
   // bouncing the browser to an attacker-supplied redirect_uri.
   if (!client || !client.redirect_uris.includes(redirectUri)) {
-    await debugLog(request, "authorize", 400, {
-      ...logParams,
-      reason: client ? "redirect not registered" : "unknown client",
-      registered: client?.redirect_uris ?? null,
-    });
     return new NextResponse("Unknown client or unregistered redirect URI.", { status: 400 });
   }
 
@@ -123,16 +110,14 @@ export async function GET(request: NextRequest) {
   const claims = claimsData?.claims as { sub?: string; email?: string } | undefined;
 
   if (!claims?.sub) {
-    await debugLog(request, "authorize", 307, { ...logParams, reason: "not signed in, sent to login" });
     const next = `/oauth/authorize${new URL(request.url).search}`;
     return NextResponse.redirect(`${origin}/login?next=${encodeURIComponent(next)}`);
   }
 
-  await debugLog(request, "authorize", 200, { ...logParams, reason: "consent shown" });
-
   const html = consentPage({
     clientName: client.client_name || "A connected app",
     email: claims.email ?? "",
+    canWrite: scope.split(" ").includes(WRITE_SCOPE),
     hidden: {
       client_id: clientId,
       redirect_uri: redirectUri,

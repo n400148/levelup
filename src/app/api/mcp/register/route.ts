@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { randomToken } from "@/lib/mcp/tokens";
-import { corsPreflight, debugLog, withCors } from "@/lib/mcp/http";
+import { corsPreflight, withCors } from "@/lib/mcp/http";
 
 function fail(error: string, description: string, status: number) {
   return withCors(NextResponse.json({ error, error_description: description }, { status }));
@@ -17,22 +17,13 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    await debugLog(req, "register", 400, { reason: "non-JSON body" });
     return fail("invalid_client_metadata", "Request body must be JSON.", 400);
   }
-
-  const meta = {
-    redirect_uris: body.redirect_uris,
-    token_endpoint_auth_method: body.token_endpoint_auth_method,
-    grant_types: body.grant_types,
-    client_name: body.client_name,
-  };
 
   const redirectUris = Array.isArray(body.redirect_uris)
     ? body.redirect_uris.filter((u): u is string => typeof u === "string")
     : [];
   if (redirectUris.length === 0) {
-    await debugLog(req, "register", 400, { ...meta, reason: "no redirect_uris" });
     return fail("invalid_redirect_uri", "redirect_uris is required and must be a non-empty array.", 400);
   }
   for (const uri of redirectUris) {
@@ -40,12 +31,10 @@ export async function POST(req: Request) {
     try {
       parsed = new URL(uri);
     } catch {
-      await debugLog(req, "register", 400, { ...meta, reason: `malformed redirect ${uri}` });
       return fail("invalid_redirect_uri", `Malformed redirect URI: ${uri}`, 400);
     }
     const isLocalhost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
     if (parsed.protocol !== "https:" && !isLocalhost) {
-      await debugLog(req, "register", 400, { ...meta, reason: `non-https redirect ${uri}` });
       return fail("invalid_redirect_uri", `Redirect URI must use https: ${uri}`, 400);
     }
   }
@@ -63,11 +52,9 @@ export async function POST(req: Request) {
     if (error) throw new Error(error.message);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    await debugLog(req, "register", 500, { ...meta, reason: message });
     return fail("server_error", message, 500);
   }
 
-  await debugLog(req, "register", 201, meta);
   return withCors(
     NextResponse.json(
       {
