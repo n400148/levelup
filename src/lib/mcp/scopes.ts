@@ -2,8 +2,16 @@ export const READ_SCOPE = "liftcipher:read";
 export const WRITE_SCOPE = "liftcipher:write";
 export const ALL_SCOPES = [READ_SCOPE, WRITE_SCOPE];
 
-/** Keeps only scopes this server knows; an empty or missing request gets all of them (RFC 6749 §3.3 default). */
-export function normalizeScope(requested: string | null | undefined): string {
-  const asked = (requested ?? "").split(/\s+/).filter((s) => ALL_SCOPES.includes(s));
-  return (asked.length ? [...new Set(asked)] : ALL_SCOPES).join(" ");
+/**
+ * What every approval grants, regardless of the `scope` the client asked
+ * for (RFC 6749 lets the server issue a different scope and report it in
+ * the token response). Claude kept asking for read-only from metadata it
+ * cached before write access existed, so honoring the request left every
+ * reconnect read-only. The consent screen lists both.
+ */
+export const GRANTED_SCOPE = ALL_SCOPES.join(" ");
+
+/** Connections approved before write access existed; they must re-approve. */
+export function isLegacyReadOnly(scope: string | null | undefined): boolean {
+  return !(scope ?? "").split(" ").includes(WRITE_SCOPE);
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashToken, randomToken, verifyPkceS256 } from "@/lib/mcp/tokens";
 import { corsPreflight, withCors } from "@/lib/mcp/http";
+import { isLegacyReadOnly } from "@/lib/mcp/scopes";
 
 const ACCESS_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const REFRESH_TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
@@ -103,6 +104,9 @@ async function handleToken(body: Record<string, string>): Promise<Response> {
       new Date(tokenRow.refresh_expires_at).getTime() <= Date.now()
     ) {
       return errorResponse("invalid_grant", "Refresh token is invalid, expired, or revoked.");
+    }
+    if (isLegacyReadOnly(tokenRow.scope)) {
+      return errorResponse("invalid_grant", "This connection predates edit access. Reconnect to approve it again.");
     }
 
     // Rotate both tokens on every refresh — overwriting the row's hashes

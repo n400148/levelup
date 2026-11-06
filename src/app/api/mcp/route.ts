@@ -3,6 +3,7 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { verifyBearerToken } from "@/lib/mcp/auth";
 import { buildMcpServer } from "@/lib/mcp/server";
 import { corsPreflight, publicOrigin, withCors } from "@/lib/mcp/http";
+import { GRANTED_SCOPE } from "@/lib/mcp/scopes";
 
 // The actual MCP resource server. Deployed on Netlify as a serverless
 // function, so there's no long-lived process to hold a session across
@@ -25,7 +26,7 @@ async function handle(request: NextRequest): Promise<Response> {
         status: 401,
         headers: {
           "Content-Type": "application/json",
-          "WWW-Authenticate": `Bearer resource_metadata="${publicOrigin(request)}/.well-known/oauth-protected-resource"`,
+          "WWW-Authenticate": `Bearer resource_metadata="${publicOrigin(request)}/.well-known/oauth-protected-resource", scope="${GRANTED_SCOPE}"`,
         },
       }),
     );

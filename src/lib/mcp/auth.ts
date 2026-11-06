@@ -1,6 +1,7 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashToken } from "@/lib/mcp/tokens";
+import { isLegacyReadOnly } from "@/lib/mcp/scopes";
 
 /** Validates a `Bearer <token>` header against mcp_oauth_tokens and resolves the LiftCipher user it belongs to. */
 export async function verifyBearerToken(authHeader: string | null): Promise<AuthInfo | null> {
@@ -17,6 +18,9 @@ export async function verifyBearerToken(authHeader: string | null): Promise<Auth
 
   if (error || !data || data.revoked) return null;
   if (new Date(data.access_expires_at).getTime() <= Date.now()) return null;
+  // Rejected so the client is forced through a fresh approval, which
+  // grants edit access; otherwise it keeps refreshing a read-only token.
+  if (isLegacyReadOnly(data.scope)) return null;
 
   return {
     token,

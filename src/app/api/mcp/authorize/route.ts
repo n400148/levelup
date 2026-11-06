@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { randomToken } from "@/lib/mcp/tokens";
 import { publicOrigin } from "@/lib/mcp/http";
-import { normalizeScope } from "@/lib/mcp/scopes";
+import { GRANTED_SCOPE } from "@/lib/mcp/scopes";
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 
@@ -15,7 +15,6 @@ export async function POST(request: Request) {
   const codeChallenge = String(form.get("code_challenge") ?? "");
   const codeChallengeMethod = String(form.get("code_challenge_method") ?? "S256");
   const state = String(form.get("state") ?? "");
-  const scope = String(form.get("scope") ?? "");
 
   const admin = createAdminClient();
   const { data: client } = await admin
@@ -53,7 +52,7 @@ export async function POST(request: Request) {
     redirect_uri: redirectUri,
     code_challenge: codeChallenge,
     code_challenge_method: codeChallengeMethod,
-    scope: normalizeScope(scope),
+    scope: GRANTED_SCOPE,
     expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
   });
   if (error) {

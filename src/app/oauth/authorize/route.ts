@@ -2,13 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { publicOrigin } from "@/lib/mcp/http";
-import { normalizeScope, WRITE_SCOPE } from "@/lib/mcp/scopes";
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-function consentPage(opts: { clientName: string; email: string; canWrite: boolean; hidden: Record<string, string> }): string {
+function consentPage(opts: { clientName: string; email: string; hidden: Record<string, string> }): string {
   const fields = Object.entries(opts.hidden)
     .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
     .join("\n      ");
@@ -50,15 +49,12 @@ function consentPage(opts: { clientName: string; email: string; canWrite: boolea
     <div class="brand">LiftCipher</div>
     <div class="sub">Connector authorization</div>
     <h1>${escapeHtml(opts.clientName)} wants to access your LiftCipher data</h1>
-    <p>${
-      opts.canWrite
-        ? "It will be able to read your tracked data, and edit your workout plans and log workouts for you. It can't change or delete anything else."
-        : "It will be able to read your tracked data during chats. It can't change or delete anything."
-    }</p>
+    <p>It will be able to read your tracked data, and edit your workout plans and log workouts for you. It can't change or delete anything else.</p>
     <ul class="scopes">
       <li>Read: weight, nutrition, and body scan history</li>
       <li>Read: workouts, stack history, goals, and meal plan</li>
-      ${opts.canWrite ? "<li>Edit: add, change, and remove exercises in your workout plans</li>\n      <li>Edit: log workout sessions</li>" : ""}
+      <li>Edit: add, change, and remove exercises in your workout plans</li>
+      <li>Edit: log workout sessions</li>
     </ul>
     <form method="POST" action="/api/mcp/authorize">
       ${fields}
@@ -82,7 +78,6 @@ export async function GET(request: NextRequest) {
   const codeChallenge = searchParams.get("code_challenge");
   const codeChallengeMethod = searchParams.get("code_challenge_method") ?? "S256";
   const state = searchParams.get("state") ?? "";
-  const scope = normalizeScope(searchParams.get("scope"));
 
   if (responseType !== "code" || !clientId || !redirectUri || !codeChallenge) {
     return new NextResponse("Malformed authorization request — missing a required parameter.", { status: 400 });
@@ -117,14 +112,12 @@ export async function GET(request: NextRequest) {
   const html = consentPage({
     clientName: client.client_name || "A connected app",
     email: claims.email ?? "",
-    canWrite: scope.split(" ").includes(WRITE_SCOPE),
     hidden: {
       client_id: clientId,
       redirect_uri: redirectUri,
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       state,
-      scope,
     },
   });
 
